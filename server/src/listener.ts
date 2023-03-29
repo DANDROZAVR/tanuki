@@ -1,4 +1,6 @@
 import http = require('http');
+import {createServer} from "net";
+
 
 const PORT = 3001;
 
@@ -17,6 +19,8 @@ const server = http.createServer((req, res) => {
         res.end();
     }
 });
+
+
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -4,6 +4,7 @@
   "description": "",
   "main": "listener.js",
   "scripts": {
+    "ser": "node dist/listener.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
