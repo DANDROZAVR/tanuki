@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2021",
+        "sourceMap": true, // ???
+        "moduleResolution": "node",
+        "lib": [
+            "es2021",
+            "dom"
+        ],
+        "declaration": true, // ???
+        "esModuleInterop": true, // ???
+        "skipLibCheck": true, // ???
+        "outDir": "dist", // ???
+        "removeComments": false // ???
+    },
+    //"files": [] // ???
+    "include": [
+        "src/**/*",
+        "test/**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ] // ???
+}
