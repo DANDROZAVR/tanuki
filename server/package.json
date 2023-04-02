@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/node": "^18.15.9",
     "fs": "^0.0.1-security",
-    "http": "^0.0.1-security"
+    "http": "^0.0.1-security",
+    "puppeteer": "^19.8.2"
   }
 }

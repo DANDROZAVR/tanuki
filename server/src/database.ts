@@ -5,7 +5,7 @@ const db = new Database('temp.db');
 // Read and execute the SQL query in ./sql/articles.sql
 
 function create() {
-    db.exec(fs.readFileSync('../src/sql/create.sql').toString());
+    db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
 create();
@@ -23,11 +23,14 @@ function insertUser(name:string){
 function loadScript(title:string, user:string): string{
     let result;
     const select = db.prepare("select script from scripts join users where scripts.title=? and users.name=?;");
-    select.get(
+    select.all(
         [title, user],
-        (_, res) => {result = res;} //????
+        (_, res) => {
+            result = res;
+            console.log("res" + res)
+        } //????
     );
-    console.log(result);
+    console.log("res2" + result);
     return "";
 }
 
