@@ -2,7 +2,7 @@ const fs = require('fs');
 const http = require('http');
 
 const PORT = 3001;
-const file_path = '/home/dandr/Documents/log';
+const file_path = '/home/sebastian/project/plik.txt';
 
 const fileStream = fs.createReadStream(file_path);
 const request = http.request({

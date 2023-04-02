@@ -1,5 +1,5 @@
 import http = require('http');
-import {createServer} from "net";
+import {insertScript, insertUser} from "./database";
 
 
 const PORT = 3001;
@@ -20,7 +20,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-
+insertUser("admin");
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
