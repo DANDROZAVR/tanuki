@@ -1,4 +1,4 @@
-exports.start =  () => {
+exports.start =  async () => {
     const runTempAlgos = (async () => {
         const browser = await puppeteer.launch({headless: false});
         const page = await browser.newPage();
@@ -30,4 +30,5 @@ exports.start =  () => {
         await sleep(100000)
         await browser.close();
     })
+    await runTempAlgos()
 }

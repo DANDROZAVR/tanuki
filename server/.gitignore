@@ -1,0 +1,4 @@
+build/**/*
+package-lock.json
+temp.db
+node_modules
