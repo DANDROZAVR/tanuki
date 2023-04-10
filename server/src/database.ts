@@ -4,37 +4,51 @@ import fs from 'fs';
 const db = new Database('temp.db');
 // Read and execute the SQL query in ./sql/articles.sql
 
-function create() {
+function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-create();
-
-function insertScript(title:string, script:string, user:number){
-    const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, script, user) VALUES (?, ?, ?)");
-    insert.run([title, script, user]);
+function insertScript(title: string, script: string, user: number, path?: string, options?: object): boolean {
+    const insert = db.prepare("INSERT OR REPLACE INTO scripts (id, title, source, user, path, options) VALUES (?, ?, ?, ?, ?)")
+    try {
+        insert.run([title, script, user, path, JSON.stringify(options)]);
+        console.log("Script inserted successfully");
+        return true;
+    } catch (err) {
+        console.error("Error inserting script:", err);
+        return false;
+    }
 }
 
-function insertUser(name:string){
-    const insert = db.prepare("INSERT OR REPLACE INTO users (name) VALUES (?)");
-    insert.run([name]);
+function insertUser(name:string): boolean {
+    const insert = db.prepare("INSERT OR REPLACE INTO users (id) VALUES (?)");
+    try {
+        insert.run([name]);
+        console.log("User inserted successfully");
+        return true;
+    } catch (err) {
+        console.error("Error inserting user:", err);
+        return false;
+    }
 }
 
-function loadScript(title:string, user:string): string{
-    let result;
-    const select = db.prepare("select script from scripts join users where scripts.title=? and users.name=?;");
-    select.all(
-        [title, user],
-        (_, res) => {
-            result = res;
-            console.log("res" + res)
-        } //????
-    );
-    console.log("res2" + result);
-    return "";
+function loadScript(title: string, user: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "SELECT script FROM scripts JOIN users ON scripts.user = users.id WHERE scripts.title = ? AND users.name = ?"
+        );
+        select.all([title, user], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (rows.length > 0) {
+                    resolve(rows[0].source);
+                } else {
+                    resolve("");
+                }
+            }
+        });
+    });
 }
 
-console.log(loadScript("manual", "admin"));
-
-export {insertScript, insertUser}
-
+export { insertScript, insertUser, createDB, loadScript };

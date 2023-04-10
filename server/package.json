@@ -2,17 +2,30 @@
   "name": "bot-server",
   "version": "1.0.0",
   "description": "",
-  "main": "listener.js",
   "scripts": {
-    "ser": "node dist/listener.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run build && node build/listener.js",
+    "start:dev": "npx nodemon build/listener.js",
+    "lint": "eslint . --ext .ts",
+    "lint-and-fix": "eslint . --ext .ts --fix",
+    "build": "rimraf ./build && tsc",
+    "test": "npm run build && node build/listener.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^18.15.9",
+    "clear-module": "^4.1.2",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
     "puppeteer": "^19.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.10",
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "@typescript-eslint/parser": "^5.56.0",
+    "eslint": "^8.36.0",
+    "nodemon": "^2.0.22",
+    "rimraf": "^4.4.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.2"
   }
 }

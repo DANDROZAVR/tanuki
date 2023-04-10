@@ -1,10 +1,15 @@
 import http = require('http');
-import {insertScript, insertUser} from "./database";
+import {createDB, insertScript, insertUser} from "./database";
 import puppeteer from "puppeteer";
+import {loadJSFromPath} from "./helpers/scriptsDymLoading";
+import {Worker} from 'node:worker_threads'
 
+createDB();
+//insertUser("admin");
+
+const workerPath = './build/worker.js'
 
 const PORT = 3001;
-
 const server = http.createServer((req, res) => {
     if (req.method === 'POST') {
         console.log("GOT REQUEST")
@@ -13,7 +18,11 @@ const server = http.createServer((req, res) => {
             body += chunk.toString();
         });
         req.on('end',    () => {
-            runTempAlgos()
+            console.log(body)
+            const jsonWorkerPath = JSON.stringify({path: '../../scripts/helloworld2.js'})
+            const worker = new Worker(workerPath, {workerData: jsonWorkerPath})
+            enableLogs(worker)
+            console.log(jsonWorkerPath)
             res.end('GET READY BABY');
         });
     } else {
@@ -21,11 +30,27 @@ const server = http.createServer((req, res) => {
     }
 });
 
-insertUser("admin");
-
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+const enableLogs = (worker: Worker) => {
+    worker.on('message', (result) => {
+        console.log('msg' + result);
+    });
+    worker.on('error', (error) => {
+        console.error(`Worker error: ${error}`);
+        // Start a new task once the worker is no longer busy
+    });
+    worker.on('exit', (code) => {
+        if (code !== 0) {
+            console.error(`Worker stopped with exit code ${code}`);
+            // Start a new task once the worker is no longer busy
+        } else {
+            console.error('worker stoped normally')
+        }
+    });
+}
 
 const sleep = async (time:number) => {
     await new Promise<void>((resolve) => {
@@ -34,35 +59,3 @@ const sleep = async (time:number) => {
         }, time)
     })
 }
-
-const runTempAlgos = (async () => {
-    const browser = await puppeteer.launch({headless: false});
-    const page = await browser.newPage();
-
-    await page.goto('https://developers.google.com/web/');
-    await sleep(1000)
-    // Type into search box.
-    await page.type('.devsite-search-field', 'Headless Chrome');
-    await sleep(1000)
-    // Wait for suggest overlay to appear and click "show all results".
-    const allResultsSelector = '.devsite-suggest-all-results';
-    await page.waitForSelector(allResultsSelector);
-    await page.click(allResultsSelector);
-    await sleep(1000)
-    // Wait for the results page to load and display the results.
-    const resultsSelector = '.gsc-table-result a.gs-title[href]';
-    await page.waitForSelector(resultsSelector);
-    await sleep(2000)
-    // Extract the results from the page.
-    const links = await page.evaluate(resultsSelector => {
-        const anchors = Array.from(document.querySelectorAll(resultsSelector));
-        return anchors.map(anchor => {
-            const title = anchor.textContent.split('|')[0].trim();
-            // @ts-ignore
-            return `${title} - ${anchor.href}`;
-        });
-    }, resultsSelector);
-    console.log(links.join('\n'));
-    await sleep(100000)
-    await browser.close();
-})

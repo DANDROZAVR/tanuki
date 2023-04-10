@@ -6,7 +6,13 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS scripts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title VARCHAR(200) NOT NULL,
-    script TEXT NOT NULL,
+    source TEXT NOT NULL,
+    path VARCHAR(200),
+    options JSON,
     user REFERENCES users,
     UNIQUE(title, user)
-)
+);
+
+CREATE TABLE IF NOT EXISTS schedule (
+    title
+);
