@@ -8,20 +8,27 @@ function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-function insertScript(title: string, script: string, user: number, path?: string, options?: object): boolean {
-    const insert = db.prepare("INSERT OR REPLACE INTO scripts (id, title, source, user, path, options) VALUES (?, ?, ?, ?, ?)")
-    try {
-        insert.run([title, script, user, path, JSON.stringify(options)]);
-        console.log("Script inserted successfully");
-        return true;
-    } catch (err) {
-        console.error("Error inserting script:", err);
-        return false;
-    }
+function insertScript(title: string, source: string, user: number, path?: string, options?: object): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, source, user, path, options) VALUES (?, ?, ?, ?, ?)")
+        try {
+            //title, source, user, path, JSON.stringify(options)
+            insert.run([], (error) => {
+                console.log("error: " + error)
+                if (error == null)
+                    resolve(true); else
+                    reject(error)
+            }); // TODO: change to serialization if multithreadining is enabled
+        } catch (err) {
+            // TODO: make research. probably exceptions there don't work
+            console.error("Error inserting script:", err);
+            return false;
+        }
+    })
 }
 
 function insertUser(name:string): boolean {
-    const insert = db.prepare("INSERT OR REPLACE INTO users (id) VALUES (?)");
+    const insert = db.prepare("INSERT OR REPLACE INTO users (name) VALUES (?)");
     try {
         insert.run([name]);
         console.log("User inserted successfully");
@@ -35,7 +42,7 @@ function insertUser(name:string): boolean {
 function loadScript(title: string, user: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT script FROM scripts JOIN users ON scripts.user = users.id WHERE scripts.title = ? AND users.name = ?"
+            "SELECT source FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
         );
         select.all([title, user], (err, rows) => {
             if (err) {
