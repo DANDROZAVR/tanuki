@@ -1,4 +1,1 @@
-tcs listener.js
-node listener.js
-...
-node client.js
+All scripts are listed in package.json
