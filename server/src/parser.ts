@@ -1,27 +1,40 @@
 // can't understand truly what is it for. for dealing with already founded scripts? or for founding on-request in the main thread and giving it to a worker? Or should it completely parse http requests?
 import {Worker} from "node:worker_threads";
-import {insertScript, loadScript} from "./database";
-import * as timers from "timers";
+import {insertScriptByName, loadScriptByName} from "./database";
+import {saveJSToPath} from "./helpers/scriptsDymSaving";
 
 const workerPath = './build/worker.js'
 
+/**
+ *
+ * @param bodyJson
+ * Example:
+ *  {
+ *      user: "admin",
+ *      title: "title",
+ *      source: "source",
+ *  }
+ */
+
 const parseInsert = async (bodyJson: any) : Promise<boolean> => {
-    if (!('user' in bodyJson) || !('tittle' in bodyJson))
+    if (!('user' in bodyJson) || !('title' in bodyJson) || !('source' in bodyJson))
         return false;
-    const tittle = bodyJson.tittle
+    const title = bodyJson.title
     const user = bodyJson.user
-    const path = user + tittle
+    const path = 'scripts/' + user + title + '.js'
     const source = bodyJson.source
     const options = ('options' in bodyJson ? bodyJson.options : {})
-    return insertScript(tittle, source, user, path, options)
+    return insertScriptByName(title, source, user, path, options)
+        .then(_ => saveJSToPath(path, source))
 
 }
 
 const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: change void later to some callback results
-    if (!('user' in bodyJson) || !('tittle' in bodyJson))
+    if (!('user' in bodyJson) || !('title' in bodyJson))
         return false;
-    const pathToScript = await loadScript(bodyJson.user, bodyJson.tittle)
-    const jsonWorkerPath = JSON.stringify({path: '../../scripts/' + pathToScript})
+    const script : any = (await loadScriptByName(bodyJson.title, bodyJson.user))
+    const pathToScript = script.path
+    const jsonWorkerPath = JSON.stringify({path: '../../' + pathToScript})
     const worker = new Worker(workerPath, {workerData: jsonWorkerPath})
     enableLogs(worker)
     addWorkerToObserveList(worker)

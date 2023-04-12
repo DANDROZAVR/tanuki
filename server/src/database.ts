@@ -1,5 +1,7 @@
 import { Database } from 'sqlite3';
 import fs from 'fs';
+import {type} from "os";
+import {isNumberObject, isStringObject} from "util/types";
 
 const db = new Database('temp.db');
 // Read and execute the SQL query in ./sql/articles.sql
@@ -8,12 +10,33 @@ function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-function insertScript(title: string, source: string, user: number, path?: string, options?: object): Promise<boolean> {
+function getUserID(name: string) : Promise<number> {
     return new Promise((resolve, reject) => {
+        const selectId = db.prepare("SELECT ID FROM users WHERE users.name == ?")
+        selectId.all([name], (error, result) => {
+            console.log("error: " + error)
+            if (error == null && result.length == 1)
+                resolve(result[0].id); else
+            if (result.length != 1)
+                reject("Didn't get any ids: " + result); else
+                reject(error)
+        })
+    })
+}
+
+function insertScriptByName(title: string, source: string, userName: string, path?: string, options?: object) : Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        getUserID(userName)
+            .then(async userID => resolve(await insertScriptByID(title, source, userID, path, options)))
+            .catch(error => reject(error))
+    })
+}
+
+function insertScriptByID(title: string, source: string, userID: number, path?: string, options?: object): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
         const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, source, user, path, options) VALUES (?, ?, ?, ?, ?)")
         try {
-            //title, source, user, path, JSON.stringify(options)
-            insert.run([], (error) => {
+            insert.run([title, source, userID, path, JSON.stringify(options)], (error) => {
                 console.log("error: " + error)
                 if (error == null)
                     resolve(true); else
@@ -27,35 +50,51 @@ function insertScript(title: string, source: string, user: number, path?: string
     })
 }
 
-function insertUser(name:string): boolean {
-    const insert = db.prepare("INSERT OR REPLACE INTO users (name) VALUES (?)");
-    try {
-        insert.run([name]);
-        console.log("User inserted successfully");
-        return true;
-    } catch (err) {
-        console.error("Error inserting user:", err);
-        return false;
-    }
+function insertUser(name: string): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+        const insert = db.prepare("INSERT OR REPLACE INTO users (name) VALUES (?)");
+        try {
+            insert.run([name], (error) => {
+                console.log("error: " + error)
+                if (error == null)
+                    resolve(true); else
+                    reject(error)
+            });
+        } catch (err) {
+            console.error("Error inserting user:", err);
+            return false;
+        }
+    })
 }
 
-function loadScript(title: string, user: string): Promise<string> {
+function loadScriptByName(title: string, userName: string): Promise<JSON> {
+    return new Promise((resolve, reject) => {
+        getUserID(userName)
+            .then(async userID => resolve(await loadScriptByID(title, userID)))
+            .catch(error => reject(error))
+    })
+}
+
+
+function loadScriptByID(title: string, user: number): Promise<JSON> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT source FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
+            "SELECT * FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
         );
         select.all([title, user], (err, rows) => {
             if (err) {
                 reject(err);
             } else {
                 if (rows.length > 0) {
-                    resolve(rows[0].source);
+                    console.log('this should be 1:' + rows.length)
+                    console.log(rows[0])
+                    resolve(rows[0]);
                 } else {
-                    resolve("");
+                    reject('no scripts found')
                 }
             }
         });
     });
 }
 
-export { insertScript, insertUser, createDB, loadScript };
+export { insertScriptByID, insertScriptByName, insertUser, createDB, loadScriptByName, loadScriptByID };

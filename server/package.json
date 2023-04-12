@@ -8,7 +8,7 @@
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
     "build": "rimraf ./build && tsc",
-    "test": "npm run build && node build/listener.js"
+    "test": "npm run build && node build/localtest.js"
   },
   "author": "",
   "license": "ISC",
