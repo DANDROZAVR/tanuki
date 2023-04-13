@@ -10,20 +10,6 @@ function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-function getUserID(name: string) : Promise<number> {
-    return new Promise((resolve, reject) => {
-        const selectId = db.prepare("SELECT ID FROM users WHERE users.name == ?")
-        selectId.all([name], (error, result) => {
-            console.log("error: " + error)
-            if (error == null && result.length == 1)
-                resolve(result[0].id); else
-            if (result.length != 1)
-                reject("Didn't get any ids: " + result); else
-                reject(error)
-        })
-    })
-}
-
 function insertScriptByName(title: string, source: string, userName: string, path?: string, options?: object) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
@@ -67,6 +53,47 @@ function insertUser(name: string): Promise<boolean> {
     })
 }
 
+function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const insert = db.prepare(
+            "INSERT OR REPLACE INTO schedule (scriptID, options) VALUES (?, ?)"
+        );
+        try {
+            insert.run([scriptID, JSON.stringify(options)], (error) => {
+                if (error == null) {
+                    resolve(true);
+                } else {
+                    reject(error);
+                }
+            });
+        } catch (err) {
+            console.error("Error inserting into schedule:", err);
+            return false;
+        }
+    });
+}
+
+function insertIntoCalendar(scheduleID: number, datetime: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const insert = db.prepare(
+            "INSERT OR REPLACE INTO calendar (id, datetime) VALUES (?, ?)"
+        );
+        try {
+            insert.run([scheduleID, datetime], (error) => {
+                if (error == null) {
+                    resolve(true);
+                } else {
+                    reject(error);
+                }
+            });
+        } catch (err) {
+            console.error("Error inserting into calendar:", err);
+            return false;
+        }
+    });
+}
+
+
 function loadScriptByName(title: string, userName: string): Promise<JSON> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
@@ -90,5 +117,50 @@ function loadScriptByID(title: string, user: number): Promise<JSON> {
         });
     });
 }
+
+function getUserID(name: string) : Promise<number> {
+    return new Promise((resolve, reject) => {
+        const selectId = db.prepare("SELECT ID FROM users WHERE users.name == ?")
+        selectId.all([name], (error, result) => {
+            console.log("error: " + error)
+            if (error == null && result.length == 1)
+                resolve(result[0].id); else
+            if (result.length != 1)
+                reject("Didn't get any ids: " + result); else
+                reject(error)
+        })
+    })
+}
+
+function getSchedule(scriptID: number): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "SELECT * FROM schedule WHERE schedule.scriptID = ?"
+        );
+        select.all([scriptID], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
+function getFirstFromCalendar(): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "SELECT * FROM calendar ORDER BY datetime ASC LIMIT 1"
+        );
+        select.get((err, row) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+}
+
 
 export { insertScriptByID, insertScriptByName, insertUser, createDB, loadScriptByName, loadScriptByID };

@@ -8,11 +8,17 @@ CREATE TABLE IF NOT EXISTS scripts (
     title VARCHAR(200) NOT NULL,
     source TEXT NOT NULL,
     path VARCHAR(200),
-    options JSON,
     user REFERENCES users,
     UNIQUE(title, user)
 );
 
 CREATE TABLE IF NOT EXISTS schedule (
-    id INTEGER PRIMARY KEY AUTOINCREMENT
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    options JSON, -- information about how often smth should be executed
+    scriptID REFERENCES scripts
 );
+
+CREATE TABLE IF NOT EXISTS calendar (
+    id REFERENCES schedule,
+    DATETIME timestamp -- the time of scheduled execution of some script
+)
