@@ -31,7 +31,7 @@ const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: cha
     if (!('user' in bodyJson) || !('title' in bodyJson))
         return false;
     const script : any = (await loadScriptByName(bodyJson.title, bodyJson.user))
-    const worker = createWorker(workerPath, {workerData: script})
+    createWorker(workerPath, {workerData: script})
     return true;
 }
 

@@ -18,7 +18,9 @@ setInterval(() => {
                 console.log('retrying task "' + workerOptions.workerData.title + '"')
                 createWorker(workerOptions.path, workerOptions, -exitCode)
             } else {
-                console.log(`task "${workerOptions.workerData.title}" failed ${maxErrorsRetrying} times`)
+                const feedback = `task "${workerOptions.workerData.title}" failed ${maxErrorsRetrying} times`
+                console.log(feedback)
+                //errors.log(feedback) TODO: need to implement DB history or logs to a file
             }
             toBeRemoved = true
         } else {
