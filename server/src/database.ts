@@ -81,17 +81,11 @@ function loadScriptByID(title: string, user: number): Promise<JSON> {
         const select = db.prepare(
             "SELECT * FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
         );
-        select.all([title, user], (err, rows) => {
+        select.get([title, user], (err, row) => {
             if (err) {
                 reject(err);
             } else {
-                if (rows.length > 0) {
-                    console.log('this should be 1:' + rows.length)
-                    console.log(rows[0])
-                    resolve(rows[0]);
-                } else {
-                    reject('no scripts found')
-                }
+                resolve(row);
             }
         });
     });
