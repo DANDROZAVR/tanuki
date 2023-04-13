@@ -1,6 +1,4 @@
 import {Worker} from "node:worker_threads";
-import {WorkerOptions} from "worker_threads";
-import * as worker_threads from "worker_threads";
 
 const maxErrorsRetrying = 3
 let workersInWork : [Worker, any, number][] = []
@@ -11,14 +9,16 @@ setInterval(() => {
         const exitCode = workersInWork[i][2]
         if (workersInWork[i][2] == 1) {
             // naturally finished
-            console.log('normally finished task "' + workerOptions.title + '"')
+            console.log('normally finished task "' + workerOptions.workerData.title + '"')
             toBeRemoved = true
         } else
         if (workersInWork[i][2] > 1) {
             // finished with an error. was runned x - 1 time (initially 2 means an error)
             if (exitCode <= maxErrorsRetrying) {
-                console.log('retrying task "' + workerOptions.title + '"')
-                createWorker(workerOptions.path, workerOptions.workerData, -exitCode)
+                console.log('retrying task "' + workerOptions.workerData.title + '"')
+                createWorker(workerOptions.path, workerOptions, -exitCode)
+            } else {
+                console.log(`task "${workerOptions.workerData.title}" failed ${maxErrorsRetrying} times`)
             }
             toBeRemoved = true
         } else {
@@ -31,12 +31,11 @@ setInterval(() => {
 }, 1000)
 // TODO: make interfaces for each call in database like WorkerOptions
 const createWorker = (path: string, workerOptions: any, exitCode: number = 0) : Worker => {
-    console.log(path)
     const worker = new Worker(path, workerOptions)
     enableLogs(worker)
     workerOptions['path'] = path
     workersInWork.push([worker, workerOptions, exitCode])
-    console.log('added task "' + workerOptions.title + '"')
+    console.log('added task "' + workerOptions.workerData.title + '"')
     return worker
 }
 
