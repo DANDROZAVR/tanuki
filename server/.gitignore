@@ -2,3 +2,4 @@ build/**/*
 package-lock.json
 temp.db
 node_modules
+utils/logs_errors.txt

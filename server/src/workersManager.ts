@@ -1,4 +1,9 @@
 import {Worker} from "node:worker_threads";
+const fs = require('fs')
+const Console = console.Console
+
+const output = fs.createWriteStream('./utils/logs_errors.txt')
+const errors = new Console(output)
 
 const maxErrorsRetrying = 3
 let workersInWork : [Worker, any, number][] = []
@@ -20,7 +25,7 @@ setInterval(() => {
             } else {
                 const feedback = `task "${workerOptions.workerData.title}" failed ${maxErrorsRetrying} times`
                 console.log(feedback)
-                //errors.log(feedback) TODO: need to implement DB history or logs to a file
+                errors.log(feedback)
             }
             toBeRemoved = true
         } else {
