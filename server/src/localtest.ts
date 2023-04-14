@@ -1,10 +1,11 @@
-import {createDB, getFirstFromCalendar, insertUser} from "./sql/database";
+import {createDB, getFirstFromCalendar, getUserID, insertUser} from "./sql/database";
 import {parseExecute, parseInsert, parseSchedule} from "./parser";
 
 const main = async () => {
     createDB()
     await insertUser('admin')
-    await parseInsert({
+    console.log(await getUserID('admin'))
+    /*await parseInsert({
         user: "admin",
         title: "title",
         source: "exports.start =  () => {\n" +
@@ -17,7 +18,7 @@ const main = async () => {
         }
     )*/
     //console.log(await getFirstFromCalendar())
-    const date = await parseSchedule({
+    /*const date = await parseSchedule({
         user: "admin",
         title: "title",
         scheduleOptions: {
@@ -25,7 +26,7 @@ const main = async () => {
             once: "2023-04-13T19:05:00.000Z"
         }
 
-    })
+    })*/
     //console.log(date)
 }
 main()

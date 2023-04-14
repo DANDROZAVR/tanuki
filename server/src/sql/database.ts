@@ -163,4 +163,4 @@ function getFirstFromCalendar(): Promise<any> {
 }
 
 
-export { insertIntoSchedule, insertIntoCalendar, insertScriptByID, insertScriptByName, insertUser, createDB, getScriptByName, getScriptByID, getFirstFromCalendar, getSchedule };
+export { insertIntoSchedule, insertIntoCalendar, insertScriptByID, insertScriptByName, insertUser, createDB, getScriptByName, getScriptByID, getFirstFromCalendar, getSchedule, getUserID };
