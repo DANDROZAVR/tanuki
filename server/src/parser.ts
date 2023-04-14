@@ -1,8 +1,6 @@
-import {insertScriptByName, loadScriptByName} from "./database";
+import {insertScriptByName, getScriptByName, insertIntoSchedule, insertIntoCalendar} from "./sql/database";
 import {saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
-
-const workerPath = './build/worker.js'
 
 /**
  *
@@ -15,25 +13,61 @@ const workerPath = './build/worker.js'
  *  }
  */
 
+const checkContainsTags = (bodyJson: any, tags: string[]) : boolean => {
+    for (const word of tags)
+        if (!(word in bodyJson))
+            return false
+    return true
+}
+
 const parseInsert = async (bodyJson: any) : Promise<boolean> => {
-    if (!('user' in bodyJson) || !('title' in bodyJson) || !('source' in bodyJson))
+    if (!checkContainsTags(bodyJson, ['user', 'title', 'source']))
         return false;
     const title = bodyJson.title
     const user = bodyJson.user
     const path = 'scripts/' + user + title + '.js'
     const source = bodyJson.source
-    const options = ('options' in bodyJson ? bodyJson.options : {})
-    return insertScriptByName(title, source, user, path, options)
+    return insertScriptByName(title, source, user, path)
         .then(_ => saveJSToPath(path, source))
 }
 
 const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: change void later to some callback results
-    if (!('user' in bodyJson) || !('title' in bodyJson))
-        return false;
-    const script : any = (await loadScriptByName(bodyJson.title, bodyJson.user))
-    createWorker(workerPath, {workerData: script})
-    return true;
+    if (!checkContainsTags(bodyJson, ['user', 'title']))
+        return false
+    const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
+    createWorker({workerData: script})
+    return true
 }
 
+const parseSchedule = async (bodyJson: any) : Promise<Date | null> => {
+    if (!checkContainsTags(bodyJson, ['user', 'title', 'scheduleOptions']))
+        return null
+    const options = bodyJson.scheduleOptions
+    if (!checkContainsTags(options, ['tag']))
+        return null
+    const tag = options.tag
+    if (!(tag == 'once' || tag == 'every' || tag == 'times'))
+        return null;
+    let date
+    if (tag == 'once') {
+        if (!checkContainsTags(options, ['once']))
+            return null; // todo: not required later
+        date = options.once
+        const script : any = await getScriptByName(bodyJson.title, bodyJson.user)
+        if (!(await insertIntoSchedule(script.id, options))) {
+            return null;
+        }
+    } else
+    if (tag == 'every') {
+        return null;
+    } else
+    if (tag == 'times') {
+        return null;
+    } else return null;
+    const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
+    await insertIntoCalendar(script.id, date)
+    console.log(`script ${script.title} ${date}`)
+    return new Date(date)
+}
 
-export{parseExecute, parseInsert}
+export{parseExecute, parseInsert, parseSchedule}

@@ -21,7 +21,7 @@ setInterval(() => {
             // finished with an error. was runned x - 1 time (initially 2 means an error)
             if (exitCode <= maxErrorsRetrying) {
                 console.log('retrying task "' + workerOptions.workerData.title + '"')
-                createWorker(workerOptions.path, workerOptions, -exitCode)
+                createWorker(workerOptions, -exitCode)
             } else {
                 const feedback = `task "${workerOptions.workerData.title}" failed ${maxErrorsRetrying} times`
                 console.log(feedback)
@@ -37,10 +37,10 @@ setInterval(() => {
     }
 }, 1000)
 // TODO: make interfaces for each call in database like WorkerOptions
-const createWorker = (path: string, workerOptions: any, exitCode: number = 0) : Worker => {
-    const worker = new Worker(path, workerOptions)
+const createWorker = (workerOptions: any, exitCode: number = 0) : Worker => {
+    const workerPath = './build/worker.js'
+    const worker = new Worker(workerPath, workerOptions)
     enableLogs(worker)
-    workerOptions['path'] = path
     workersInWork.push([worker, workerOptions, exitCode])
     console.log('added task "' + workerOptions.workerData.title + '"')
     return worker

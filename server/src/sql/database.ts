@@ -10,19 +10,19 @@ function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-function insertScriptByName(title: string, source: string, userName: string, path?: string, options?: object) : Promise<boolean> {
+function insertScriptByName(title: string, source: string, userName: string, path: string) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
-            .then(async userID => resolve(await insertScriptByID(title, source, userID, path, options)))
+            .then(async userID => resolve(await insertScriptByID(title, source, userID, path)))
             .catch(error => reject(error))
     })
 }
 
-function insertScriptByID(title: string, source: string, userID: number, path?: string, options?: object): Promise<boolean> {
+function insertScriptByID(title: string, source: string, userID: number, path?: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, source, user, path, options) VALUES (?, ?, ?, ?, ?)")
+        const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, source, user, path) VALUES (?, ?, ?, ?)")
         try {
-            insert.run([title, source, userID, path, JSON.stringify(options)], (error) => {
+            insert.run([title, source, userID, path], (error) => {
                 console.log("error: " + error)
                 if (error == null)
                     resolve(true); else
@@ -73,13 +73,13 @@ function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
     });
 }
 
-function insertIntoCalendar(scheduleID: number, datetime: string): Promise<boolean> {
+function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const insert = db.prepare(
             "INSERT OR REPLACE INTO calendar (id, datetime) VALUES (?, ?)"
         );
         try {
-            insert.run([scheduleID, datetime], (error) => {
+            insert.run([scheduleID, datetime.toString()], (error) => {
                 if (error == null) {
                     resolve(true);
                 } else {
@@ -94,16 +94,16 @@ function insertIntoCalendar(scheduleID: number, datetime: string): Promise<boole
 }
 
 
-function loadScriptByName(title: string, userName: string): Promise<JSON> {
+function getScriptByName(title: string, userName: string): Promise<JSON> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
-            .then(async userID => resolve(await loadScriptByID(title, userID)))
+            .then(async userID => resolve(await getScriptByID(title, userID)))
             .catch(error => reject(error))
     })
 }
 
 
-function loadScriptByID(title: string, user: number): Promise<JSON> {
+function getScriptByID(title: string, user: number): Promise<JSON> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
@@ -163,4 +163,4 @@ function getFirstFromCalendar(): Promise<any> {
 }
 
 
-export { insertScriptByID, insertScriptByName, insertUser, createDB, loadScriptByName, loadScriptByID };
+export { insertIntoSchedule, insertIntoCalendar, insertScriptByID, insertScriptByName, insertUser, createDB, getScriptByName, getScriptByID, getFirstFromCalendar, getSchedule };

@@ -20,5 +20,5 @@ CREATE TABLE IF NOT EXISTS schedule (
 
 CREATE TABLE IF NOT EXISTS calendar (
     id REFERENCES schedule,
-    DATETIME timestamp -- the time of scheduled execution of some script
+    datetime timestamp -- the time of scheduled execution of some script
 )
