@@ -70,8 +70,8 @@ const server = http.createServer((req, res) => {
     } else {
         res.end();
     }
-});
+})
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-});
+})

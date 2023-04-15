@@ -6,11 +6,11 @@ import {isNumberObject, isStringObject} from "util/types";
 const db = new Database('temp.db');
 // Read and execute the SQL query in ./sql/articles.sql
 
-function createDB(): void {
+export function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-function insertScriptByName(title: string, source: string, userName: string, path: string) : Promise<boolean> {
+export function insertScriptByName(title: string, source: string, userName: string, path: string) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
             .then(async userID => resolve(await insertScriptByID(title, source, userID, path)))
@@ -18,7 +18,7 @@ function insertScriptByName(title: string, source: string, userName: string, pat
     })
 }
 
-function insertScriptByID(title: string, source: string, userID: number, path?: string): Promise<boolean> {
+export function insertScriptByID(title: string, source: string, userID: number, path?: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
         const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, source, user, path) VALUES (?, ?, ?, ?)")
         try {
@@ -36,7 +36,7 @@ function insertScriptByID(title: string, source: string, userID: number, path?: 
     })
 }
 
-function insertUser(name: string): Promise<boolean> {
+export function insertUser(name: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
         const insert = db.prepare("INSERT OR REPLACE INTO users (name) VALUES (?)");
         try {
@@ -53,7 +53,7 @@ function insertUser(name: string): Promise<boolean> {
     })
 }
 
-function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
+export function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const insert = db.prepare(
             "INSERT OR REPLACE INTO schedule (scriptID, options) VALUES (?, ?)"
@@ -73,7 +73,7 @@ function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
     });
 }
 
-function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<boolean> {
+export function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const insert = db.prepare(
             "INSERT OR REPLACE INTO calendar (id, datetime) VALUES (?, ?)"
@@ -94,16 +94,16 @@ function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<boolean
 }
 
 
-function getScriptByName(title: string, userName: string): Promise<JSON> {
+export function getScriptByName(title: string, userName: string): Promise<JSON> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
-            .then(async userID => resolve(await getScriptByID(title, userID)))
+            .then(async userID => resolve(await getScriptByUserID(title, userID)))
             .catch(error => reject(error))
     })
 }
 
 
-function getScriptByID(title: string, user: number): Promise<JSON> {
+export function getScriptByUserID(title: string, user: number): Promise<JSON> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
@@ -118,21 +118,35 @@ function getScriptByID(title: string, user: number): Promise<JSON> {
     });
 }
 
-function getUserID(name: string) : Promise<number> {
+export function getScriptByID(scriptID: number): Promise<JSON> {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "SELECT * FROM scripts WHERE scripts.id = ?"
+        );
+        select.get([scriptID], (err, row) => {
+            if (err)
+                reject(err); else
+            if (row === undefined)
+                reject(`There's no scrpt with id ${scriptID}`); else
+                resolve(row);
+        });
+    });
+}
+
+export function getUserID(name: string) : Promise<number> {
     return new Promise((resolve, reject) => {
         const selectId = db.prepare("SELECT ID FROM users WHERE users.name == ?")
-        selectId.all([name], (error, result) => {
-            console.log("error: " + error)
-            if (error == null && result.length == 1)
-                resolve(result[0].id); else
-            if (result.length != 1)
-                reject("Didn't get any ids: " + result); else
-                reject(error)
+        selectId.get([name], (err, row) => {
+            if (err)
+                reject(err); else
+            if (row === undefined)
+                reject(`There's no users with the name ${name}`); else
+                resolve(row);
         })
     })
 }
 
-function getSchedule(scriptID: number): Promise<any[]> {
+export function getScheduleByScriptID(scriptID: number): Promise<any[]> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM schedule WHERE schedule.scriptID = ?"
@@ -147,20 +161,48 @@ function getSchedule(scriptID: number): Promise<any[]> {
     });
 }
 
-function getFirstFromCalendar(): Promise<any> {
+export function getScheduleByID(scriptID: number): Promise<any> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT * FROM calendar ORDER BY datetime ASC LIMIT 1"
+            "SELECT * FROM schedule WHERE schedule.id = ?"
         );
-        select.get((err, row) => {
+        select.get([scriptID], (err, rows) => {
             if (err) {
                 reject(err);
             } else {
-                resolve(row);
+                resolve(rows);
             }
         });
     });
 }
 
+export function getFirstFromCalendar(): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "SELECT * FROM calendar ORDER BY datetime ASC LIMIT 1"
+        );
+        select.get((err, row) => {
+            if (err)
+                reject(err); else
+            if (row === undefined)
+                reject("There's no scripts are in calendar"); else
+                resolve(row);
+        });
+    });
+}
 
-export { insertIntoSchedule, insertIntoCalendar, insertScriptByID, insertScriptByName, insertUser, createDB, getScriptByName, getScriptByID, getFirstFromCalendar, getSchedule, getUserID };
+export function removeFromCalendar(eventID: number) {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "DELETE FROM calendar WHERE id = ?"
+        );
+        select.run([eventID], (err) => {
+            if (err == null) {
+                resolve(true);
+            } else {
+                reject(err);
+            }
+        })
+    });
+}
+

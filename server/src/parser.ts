@@ -20,7 +20,7 @@ const checkContainsTags = (bodyJson: any, tags: string[]) : boolean => {
     return true
 }
 
-const parseInsert = async (bodyJson: any) : Promise<boolean> => {
+export const parseInsert = async (bodyJson: any) : Promise<boolean> => {
     if (!checkContainsTags(bodyJson, ['user', 'title', 'source']))
         return false;
     const title = bodyJson.title
@@ -31,7 +31,7 @@ const parseInsert = async (bodyJson: any) : Promise<boolean> => {
         .then(_ => saveJSToPath(path, source))
 }
 
-const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: change void later to some callback results
+export const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: change void later to some callback results
     if (!checkContainsTags(bodyJson, ['user', 'title']))
         return false
     const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
@@ -39,21 +39,27 @@ const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: cha
     return true
 }
 
-const parseSchedule = async (bodyJson: any) : Promise<Date | null> => {
+export const parseSchedule = async (bodyJson: any) : Promise<Date | null> => {
     if (!checkContainsTags(bodyJson, ['user', 'title', 'scheduleOptions']))
         return null
     const options = bodyJson.scheduleOptions
     if (!checkContainsTags(options, ['tag']))
         return null
+    const script : any = await getScriptByName(bodyJson.title, bodyJson.user)
+    return addToCalendar(script, options)
+}
+
+export const addToCalendar = async (script: any, options: any, firstTime: boolean = true) : Promise<Date | null> => {
     const tag = options.tag
     if (!(tag == 'once' || tag == 'every' || tag == 'times'))
         return null;
-    let date
+    let date : Date
     if (tag == 'once') {
+        if (!firstTime)
+            return null;
         if (!checkContainsTags(options, ['once']))
-            return null; // todo: not required later
+            return null; // todo: temp, not required later
         date = options.once
-        const script : any = await getScriptByName(bodyJson.title, bodyJson.user)
         if (!(await insertIntoSchedule(script.id, options))) {
             return null;
         }
@@ -64,10 +70,9 @@ const parseSchedule = async (bodyJson: any) : Promise<Date | null> => {
     if (tag == 'times') {
         return null;
     } else return null;
-    const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
+
     await insertIntoCalendar(script.id, date)
     console.log(`script ${script.title} ${date}`)
     return new Date(date)
 }
 
-export{parseExecute, parseInsert, parseSchedule}
