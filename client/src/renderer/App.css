@@ -61,6 +61,11 @@ a:hover {
   margin: 20px 0;
 }*/
 
+body {
+  background-color: #222;
+  color: #DDD;
+}
+
 .container {
   display: flex;
 }
@@ -68,3 +73,54 @@ a:hover {
 #text-editor {
   width: 100%;
 }
+
+section.form-section {
+  margin: 5px;
+  padding: 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #333;
+}
+
+button {
+  background-color: #333;
+  color: #DDD;
+  border: 0px;
+  margin: 5px;
+  padding: 0.5rem;
+}
+
+input {
+  background: #111;
+  outline: none;
+  border: 1px solid #111;
+  border-radius: 1px;
+  font-size: 1rem;
+  margin: 0.25rem;
+  min-width: 125px;
+  padding: 0.3rem;
+}
+
+input:focus {
+  color: #DDD;
+  border-radius: 0px;
+  border: 1px solid #555;
+}
+/*input:optional {
+  border-color: gray;
+}
+input:required {
+  border-color: black;
+}
+input:invalid {
+  border-color: red;
+}
+
+input:required:focus:valid {
+  background: url("https://assets.digitalocean.com/labs/icons/hand-thumbs-up.svg") no-repeat 95% 50% lightgreen;
+  background-size: 25px;
+}
+input:focus:invalid {
+  background: url("https://assets.digitalocean.com/labs/icons/exclamation-triangle-fill.svg") no-repeat 95% 50% lightsalmon;
+  background-size: 25px;
+}*/
