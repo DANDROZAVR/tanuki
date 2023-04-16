@@ -18,8 +18,8 @@ export default function sendScript(ref: string) {
   connection.send(
     JSON.stringify({
       type: 'insertScript',
-      user: 'admin1',
-      id: scriptName,
+      user: 'admin',
+      title: scriptName,
       source: script,
     })
   );

@@ -20,7 +20,7 @@ export function insertScriptByName(title: string, source: string, userName: stri
 
 export function insertScriptByID(title: string, source: string, userID: number, path?: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT OR REPLACE INTO scripts (title, source, user, path) VALUES (?, ?, ?, ?)")
+        const insert = db.prepare("INSERT INTO scripts (title, source, user, path) VALUES (?, ?, ?, ?)")
         try {
             insert.run([title, source, userID, path], (error) => {
                 console.log("error: " + error)
@@ -38,7 +38,7 @@ export function insertScriptByID(title: string, source: string, userID: number, 
 
 export function insertUser(name: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT OR REPLACE INTO users (name) VALUES (?)");
+        const insert = db.prepare("INSERT INTO users (name) VALUES (?)");
         try {
             insert.run([name], (error) => {
                 console.log("error: " + error)
@@ -56,7 +56,7 @@ export function insertUser(name: string): Promise<boolean> {
 export function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const insert = db.prepare(
-            "INSERT OR REPLACE INTO schedule (scriptID, options) VALUES (?, ?)"
+            "INSERT INTO schedule (scriptID, options) VALUES (?, ?)"
         );
         try {
             insert.run([scriptID, JSON.stringify(options)], (error) => {
@@ -76,7 +76,7 @@ export function insertIntoSchedule(scriptID: number, options: JSON): Promise<boo
 export function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const insert = db.prepare(
-            "INSERT OR REPLACE INTO calendar (id, datetime) VALUES (?, ?)"
+            "INSERT INTO calendar (id, datetime) VALUES (?, ?)"
         );
         try {
             insert.run([scheduleID, datetime.toString()], (error) => {
@@ -112,7 +112,8 @@ export function getScriptByUserID(title: string, user: number): Promise<JSON> {
             if (err) {
                 reject(err);
             } else {
-                resolve(row);
+                // @ts-ignore
+                resolve(row.source);
             }
         });
     });
@@ -128,7 +129,9 @@ export function getScriptByID(scriptID: number): Promise<JSON> {
                 reject(err); else
             if (row === undefined)
                 reject(`There's no scrpt with id ${scriptID}`); else
-                resolve(row);
+                { // @ts-ignore
+                    resolve(row.source);
+                }
         });
     });
 }
@@ -140,8 +143,10 @@ export function getUserID(name: string) : Promise<number> {
             if (err)
                 reject(err); else
             if (row === undefined)
-                reject(`There's no users with the name ${name}`); else
-                resolve(row);
+                reject(`There's no users with the name ${name}`); else {
+                // @ts-ignore
+                resolve(row.id);
+            }
         })
     })
 }

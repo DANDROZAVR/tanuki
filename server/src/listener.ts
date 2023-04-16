@@ -42,6 +42,9 @@ const PORT = 3001;
  *
  */
 const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
     if (req.method === 'POST') {
         console.log("GOT REQUEST")
         let body = '';
