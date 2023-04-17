@@ -3,6 +3,30 @@ import fs from 'fs';
 import {type} from "os";
 import {isNumberObject, isStringObject} from "util/types";
 
+interface User {
+    id: number;
+    name: string;
+}
+
+export interface Script {
+    id: number;
+    title: string;
+    source: string;
+    path: string | null;
+    user: User;
+}
+
+interface Schedule {
+    id: number;
+    options: Record<string, unknown>;
+    scriptID: Script['id'];
+}
+
+interface Calendar {
+    id: Schedule['id'];
+    datetime: Date;
+}
+
 const db = new Database('temp.db');
 // Read and execute the SQL query in ./sql/articles.sql
 
@@ -94,8 +118,10 @@ export function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<
 }
 
 
-export function getScriptByName(title: string, userName: string): Promise<JSON> {
+export function getScriptByName(title: string, userName: string): Promise<Script> {
     return new Promise((resolve, reject) => {
+        console.log(title)
+        console.log(userName)
         getUserID(userName)
             .then(async userID => resolve(await getScriptByUserID(title, userID)))
             .catch(error => reject(error))
@@ -103,7 +129,7 @@ export function getScriptByName(title: string, userName: string): Promise<JSON> 
 }
 
 
-export function getScriptByUserID(title: string, user: number): Promise<JSON> {
+export function getScriptByUserID(title: string, user: number): Promise<Script> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
@@ -112,8 +138,9 @@ export function getScriptByUserID(title: string, user: number): Promise<JSON> {
             if (err) {
                 reject(err);
             } else {
+                console.log(row)
                 // @ts-ignore
-                resolve(row.source);
+                resolve(row as Script);
             }
         });
     });
@@ -128,9 +155,9 @@ export function getScriptByID(scriptID: number): Promise<JSON> {
             if (err)
                 reject(err); else
             if (row === undefined)
-                reject(`There's no scrpt with id ${scriptID}`); else
+                reject(`There's no script with id ${scriptID}`); else
                 { // @ts-ignore
-                    resolve(row.source);
+                    resolve(row);
                 }
         });
     });
@@ -143,7 +170,7 @@ export function getUserID(name: string) : Promise<number> {
             if (err)
                 reject(err); else
             if (row === undefined)
-                reject(`There's no users with the name ${name}`); else {
+                reject(`There are no users with the name ${name}`); else {
                 // @ts-ignore
                 resolve(row.id);
             }

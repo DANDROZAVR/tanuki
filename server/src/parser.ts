@@ -35,6 +35,7 @@ export const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // to
     if (!checkContainsTags(bodyJson, ['user', 'title']))
         return false
     const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
+    console.log(script)
     createWorker({workerData: script})
     return true
 }

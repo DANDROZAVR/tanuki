@@ -26,8 +26,10 @@ export function sendScript(ref: string) {
   return scriptName;
 }
 
-export function execScript(ref: string) {
-  const scriptName = ref.current.getValue();
+export function execScript() {
+
+  const input = document.getElementById("scriptToRun") as HTMLInputElement | null;
+  const scriptName = input?.value;
 
   /* establish http connection */
   const connection = new XMLHttpRequest();
@@ -42,7 +44,7 @@ export function execScript(ref: string) {
   connection.setRequestHeader('Content-type', 'application/json');
   connection.send(
     JSON.stringify({
-      type: 'exec-script',
+      type: 'execScript',
       user: 'admin',
       title: scriptName,
     })

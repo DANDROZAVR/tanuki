@@ -1,11 +1,20 @@
-import {createDB, getFirstFromCalendar, getUserID, insertUser} from "./sql/database";
+import {
+    createDB,
+    getFirstFromCalendar,
+    getUserID,
+    insertUser,
+    insertScriptByName,
+    getScriptByName,
+    getScriptByUserID
+} from "./sql/database";
 import {parseExecute, parseInsert, parseSchedule} from "./parser";
 import {dumpyConstant} from "./scheduler"
 const main = async () => {
     createDB()
-    console.log(dumpyConstant)
-    //await insertUser('admin')
-    //console.log(await getUserID('admin'))
+    const script : any = (await getScriptByUserID("adminscript1-3-2023-13-55-38.tnk", 3))
+    console.log(script)
+    //console.log(dumpyConstant)
+
     /*await parseInsert({
         user: "admin",
         title: "title",
@@ -19,7 +28,7 @@ const main = async () => {
         }
     )*/
     //console.log(await getFirstFromCalendar())
-    const date = await parseSchedule({
+    /*const date = await parseSchedule({
         user: "admin",
         title: "title",
         scheduleOptions: {
@@ -27,7 +36,7 @@ const main = async () => {
             once: "2023-04-13T19:05:00.000Z"
         }
 
-    })
+    })*/
 
 }
 main()

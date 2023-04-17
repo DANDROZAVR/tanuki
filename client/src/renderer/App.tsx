@@ -34,7 +34,7 @@ function App() {
         </button>
       </section>
       <section className="form-section">
-        <input type="text" placeholder="script1-1-2001-1-1-1.tnk" />
+        <input id="scriptToRun" type="text" placeholder="script1-1-2001-1-1-1.tnk" />
         <button
           type="button"
           onClick={() => {
