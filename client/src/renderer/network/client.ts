@@ -1,7 +1,9 @@
 export function sendScript(ref: string) {
   const script = ref.current.getValue();
   const timestamp = new Date();
-  const scriptName = `script${timestamp.getDay()}-${timestamp.getMonth()}-${timestamp.getFullYear()}-${timestamp.getHours()}-${timestamp.getMinutes()}-${timestamp.getSeconds()}.tnk`;
+
+  const input = document.getElementById("scriptTitle") as HTMLInputElement | null;
+  const scriptName = input?.value;
 
   /* establish http connection */
   const connection = new XMLHttpRequest();
