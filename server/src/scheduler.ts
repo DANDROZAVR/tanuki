@@ -1,8 +1,6 @@
 import {
     getFirstFromCalendar,
     getScheduleByID,
-    getScriptByUserID,
-    getScriptByName,
     getScriptByID,
     removeFromCalendar
 } from "./sql/database";
@@ -12,20 +10,27 @@ import {addToCalendar} from "./parser";
 export const dumpyConstant = 'yup'
 
 setInterval(async () => {
-    console.log('running scheduler')
-    while (true) {
-        getFirstFromCalendar()
+    let processed = true
+    while (processed) {
+        processed = await (getFirstFromCalendar()
             .then(async event => {
-                if (Date.parse(event.datetime) <= Date.now()) {
+                console.log(new Date() + ' ' + event.datetime)
+                if (event.datetime.getTime() <= Date.now()) {
+                    console.log('Processing scheduled scripts. Date: ' + event.datetime)
                     const schedule = await getScheduleByID(event.id)
                     const options = schedule.options
                     const script = await getScriptByID(schedule.scriptID)
                     createWorker({workerData: script})
                     await removeFromCalendar(event.id)
-                    const wasAdded = await addToCalendar(script, options, false)
-                    console.log(wasAdded)
+                    await addToCalendar(script, options, false)
+                    return true
+                } else {
+                    return false
                 }
             })
-            .catch(_ => _)
+            .catch(_ => {
+                return false
+            })
+        )
     }
 }, 1000)

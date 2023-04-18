@@ -1,6 +1,7 @@
 import {insertScriptByName, getScriptByName, insertIntoSchedule, insertIntoCalendar} from "./sql/database";
 import {saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
+import {Script} from "./sql/database";
 
 /**
  *
@@ -46,7 +47,7 @@ export const parseSchedule = async (bodyJson: any) : Promise<Date | null> => {
     const options = bodyJson.scheduleOptions
     if (!checkContainsTags(options, ['tag']))
         return null
-    const script : any = await getScriptByName(bodyJson.title, bodyJson.user)
+    const script : Script = await getScriptByName(bodyJson.title, bodyJson.user)
     return addToCalendar(script, options)
 }
 
@@ -71,9 +72,8 @@ export const addToCalendar = async (script: any, options: any, firstTime: boolea
     if (tag == 'times') {
         return null;
     } else return null;
-
     await insertIntoCalendar(script.id, date)
-    console.log(`script ${script.title} ${date}`)
+    console.log(`script added: ${script.title} ${date}`)
     return new Date(date)
 }
 
