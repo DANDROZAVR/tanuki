@@ -1,8 +1,5 @@
 import { Database } from 'sqlite3';
 import fs from 'fs';
-import {type} from "os";
-import {isNumberObject, isStringObject} from "util/types";
-
 interface User {
     id: number;
     name: string;
@@ -225,7 +222,7 @@ export function getScheduleByID(scriptID: number): Promise<Schedule> {
 export function getFirstFromCalendar(): Promise<Calendar> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT * FROM calendar ORDER BY datetime ASC LIMIT 1"
+            "SELECT * FROM calendar ORDER BY datetime LIMIT 1"
         );
         select.get((err, row) => {
             if (err)
