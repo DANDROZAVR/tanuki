@@ -1,8 +1,11 @@
 import {Worker} from "node:worker_threads";
+import {ensureDirectoryExistence} from "./helpers/scriptsDymSaving";
 const fs = require('fs')
 const Console = console.Console
 
-const output = fs.createWriteStream('./utils/logs_errors.txt')
+const logs_errors = './utils/logs_errors.txt'
+ensureDirectoryExistence(logs_errors)
+const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
 const maxErrorsRetrying = 3
