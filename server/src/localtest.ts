@@ -11,16 +11,17 @@ import {parseExecute, parseInsert, parseSchedule} from "./parser";
 import {dumpyConstant} from "./scheduler"
 const main = async () => {
     createDB()
-    //await insertUser("admin")
+    const script : any = (await getScriptByUserID("script1-3-2023-13-55-38.tnk", 3))
+    console.log(script)
+    //console.log(dumpyConstant)
+
     /*await parseInsert({
         user: "admin",
         title: "title",
         source: "exports.start =  () => {\n" +
             "    console.log('hello world2')\n" +
             "}",
-    })*/
-    //const script : any = (await getScriptByUserID("title", 1))
-    //console.log(script)
+    })
     /*await parseExecute({
             user: "admin",
             title: "title",

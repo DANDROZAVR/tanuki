@@ -26,7 +26,7 @@ export const parseInsert = async (bodyJson: any) : Promise<boolean> => {
         return false;
     const title = bodyJson.title
     const user = bodyJson.user
-    const path = 'scripts/' + user + title + '.js'
+    const path = 'scripts/' + user + '/' + title + '.js'
     const source = bodyJson.source
     return insertScriptByName(title, source, user, path)
         .then(_ => saveJSToPath(path, source))

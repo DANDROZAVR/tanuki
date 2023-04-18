@@ -23,6 +23,7 @@ function App() {
             onMount={onEditorMount}
           />
         </div>
+        <input id="scriptTitle" type="text" placeholder="my_script.tnk" />
         <button
           type="button"
           onClick={() => {
