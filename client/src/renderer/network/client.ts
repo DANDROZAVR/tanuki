@@ -6,23 +6,26 @@ export function sendScript(ref: string) {
   const scriptName = input?.value;
 
   /* establish http connection */
-  const connection = new XMLHttpRequest();
+  const request = new XMLHttpRequest();
   // TODO: custom server address
   const url = 'http://localhost:3001';
-  connection.open('POST', url, true);
-  connection.onreadystatechange = function onStateChange() {
-    if (connection.readyState === 4 && connection.status === 200) {
-      alert(`Sent script with name ${scriptName}`);
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      let response = JSON.parse(request.response)
+      // TODO: if response.status = 'error' make alert appear accordingly
+      alert(response.message);
     }
   };
-  connection.setRequestHeader('Content-type', 'application/json');
-  connection.send(
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
     JSON.stringify({
       type: 'insertScript',
       user: 'admin',
       title: scriptName,
       source: script,
     })
+
   );
 
   return scriptName;
@@ -34,17 +37,18 @@ export function execScript() {
   const scriptName = input?.value;
 
   /* establish http connection */
-  const connection = new XMLHttpRequest();
+  const request = new XMLHttpRequest();
   // TODO: custom server address
   const url = 'http://localhost:3001';
-  connection.open('POST', url, true);
-  connection.onreadystatechange = function onStateChange() {
-    if (connection.readyState === 4 && connection.status === 200) {
-      alert(`Run script ${scriptName}`);
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      let response = JSON.parse(request.response)
+      alert(response.message);
     }
   };
-  connection.setRequestHeader('Content-type', 'application/json');
-  connection.send(
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
     JSON.stringify({
       type: 'execScript',
       user: 'admin',

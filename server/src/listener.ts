@@ -53,16 +53,15 @@ const server = http.createServer((req, res) => {
         });
         req.on('end',    () => {
             console.log(body)
-            let bodyJSON
+            let bodyJSON  = JSON.parse(body)
             try {
                 let response =''
-                bodyJSON = JSON.parse(body)
                 if (bodyJSON.type == 'insertScript') {
                     parseInsert(bodyJSON)
                         .then(_ => {
-                            console.log("dupsko")
                             response = JSON.stringify({
-                                status:'ok'
+                                status:'ok',
+                                message: `Saved script ${bodyJSON.title}`
                             })
                         }).catch(error => {
                             response = JSON.stringify({
@@ -77,7 +76,8 @@ const server = http.createServer((req, res) => {
                     parseExecute(bodyJSON)
                         .then(_ => {
                             response = JSON.stringify({
-                                status:'ok'
+                                status:'ok',
+                                message: `Running script ${bodyJSON.title}`
                             })
                         }).catch(error => {
                             response = JSON.stringify({
@@ -95,7 +95,7 @@ const server = http.createServer((req, res) => {
                             if(result){
                                 response = JSON.stringify({
                                     status:'ok',
-                                    message: 'scheduled on ${result}'
+                                    message: 'Scheduled on ${result}'
                                 })
                             } else {
                                 response = JSON.stringify({
