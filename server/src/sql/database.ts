@@ -212,6 +212,7 @@ export function getScheduleByID(scriptID: number): Promise<Schedule> {
                 reject(err);
             } else {
                 const schedule : Schedule = row as Schedule
+                // @ts-ignore
                 schedule.options = JSON.parse(row.options)
                 resolve(row as Schedule);
             }

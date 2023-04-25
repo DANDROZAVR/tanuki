@@ -55,17 +55,65 @@ const server = http.createServer((req, res) => {
             console.log(body)
             let bodyJSON
             try {
+                let response =''
                 bodyJSON = JSON.parse(body)
                 if (bodyJSON.type == 'insertScript') {
                     parseInsert(bodyJSON)
-                        .then(result => res.end(result ? "inserted" : "error"))
+                        .then(_ => {
+                            console.log("dupsko")
+                            response = JSON.stringify({
+                                status:'ok'
+                            })
+                        }).catch(error => {
+                            response = JSON.stringify({
+                                status:'error',
+                                message:error.message
+                            })
+                        }).then( _=> {
+                        console.log(JSON.parse(response))
+                        res.end(response)
+                    })
                 } else if (bodyJSON.type == 'execScript') {
                     parseExecute(bodyJSON)
-                        .then(result => res.end(result ? "running" : "error"))
+                        .then(_ => {
+                            response = JSON.stringify({
+                                status:'ok'
+                            })
+                        }).catch(error => {
+                            response = JSON.stringify({
+                                status:'error',
+                                message:error.message
+                        })
+                    }).then( _=> {
+                        console.log(JSON.parse(response))
+                        res.end(response)
+                    })
+
                 } else if (bodyJSON.type == 'scheduleScript') {
                     parseSchedule(bodyJSON)
-                        .then(result => res.end(result ? `scheduled on ${result}` : "error"))
+                        .then(result => {
+                            if(result){
+                                response = JSON.stringify({
+                                    status:'ok',
+                                    message: 'scheduled on ${result}'
+                                })
+                            } else {
+                                response = JSON.stringify({
+                                    status:'error',
+                                    message: ''
+                                })
+                            }
+                        }).catch(error=> {
+                        response = JSON.stringify({
+                            status: 'error',
+                            message: error.message
+                        })
+                    }).then( _=> {
+                        console.log(JSON.parse(response))
+                        res.end(response)
+                    })
                 }
+
             } catch (err) {
                 console.error(err)
             }
