@@ -8,7 +8,7 @@ ensureDirectoryExistence(logs_errors)
 const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
-const maxErrorsRetrying = 3
+const maxErrorsRetrying = 1
 let workersInWork : [Worker, any, number][] = []
 setInterval(() => {
     for (let i = workersInWork.length - 1; i >= 0; --i) {
