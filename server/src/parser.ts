@@ -14,6 +14,8 @@ import {Script} from "./sql/database";
  *  }
  */
 
+class DataError extends Error{}
+
 const checkContainsTags = (bodyJson: any, tags: string[]) : boolean => {
     for (const word of tags)
         if (!(word in bodyJson))
@@ -21,32 +23,40 @@ const checkContainsTags = (bodyJson: any, tags: string[]) : boolean => {
     return true
 }
 
-export const parseInsert = async (bodyJson: any) : Promise<boolean> => {
+export const parseInsert = async (bodyJson: any) : Promise<void> => {
     if (!checkContainsTags(bodyJson, ['user', 'title', 'source']))
-        return false;
+        throw new DataError('not a valid insert request')
     const title = bodyJson.title
     const user = bodyJson.user
     const path = 'scripts/' + user + '/' + title + '.js'
     const source = bodyJson.source
-    return insertScriptByName(title, source, user, path)
+    await insertScriptByName(title, source, user, path)
         .then(_ => saveJSToPath(path, source))
+        .catch(error =>{
+            if(error.errno == 19){
+                throw new DataError("Sript with that name already exist")
+            }else{
+                throw error
+            }
+        })
 }
 
-export const parseExecute = async (bodyJson: any) : Promise<boolean> => {  // todo: change void later to some callback results
+export const parseExecute = async (bodyJson: any) : Promise<void> => {  // todo: change void later to some callback results
     if (!checkContainsTags(bodyJson, ['user', 'title']))
-        return false
+        throw new DataError('not a valid execute request')
     const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
-    console.log(script)
+    if(script === undefined){
+        throw new DataError("Script with that name does not exist")
+    }
     createWorker({workerData: script})
-    return true
 }
 
-export const parseSchedule = async (bodyJson: any) : Promise<Date | null> => {
+export const parseSchedule = async (bodyJson: any) : Promise<Date|null> => {
     if (!checkContainsTags(bodyJson, ['user', 'title', 'scheduleOptions']))
-        return null
+        throw new DataError('not a valid schedule request')
     const options = bodyJson.scheduleOptions
     if (!checkContainsTags(options, ['tag']))
-        return null
+        throw new DataError('not a valid schedule request')
     const script : Script = await getScriptByName(bodyJson.title, bodyJson.user)
     return addToCalendar(script, options)
 }
