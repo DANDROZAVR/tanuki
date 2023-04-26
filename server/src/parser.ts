@@ -41,7 +41,7 @@ export const parseInsert = async (bodyJson: any) : Promise<void> => {
         })
 }
 
-export const parseExecute = async (bodyJson: any) : Promise<void> => {  // todo: change void later to some callback results
+export const parseExecute = async (bodyJson: any) : Promise<void> => {
     if (!checkContainsTags(bodyJson, ['user', 'title']))
         throw new DataError('not a valid execute request')
     const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
@@ -49,6 +49,16 @@ export const parseExecute = async (bodyJson: any) : Promise<void> => {  // todo:
         throw new DataError("Script with that name does not exist")
     }
     createWorker({workerData: script})
+}
+
+export const parseLoad = async (bodyJson: any) : Promise<Script> => {
+    if (!checkContainsTags(bodyJson, ['user', 'title']))
+        throw new DataError('not a valid load request')
+    const script : Script = (await getScriptByName(bodyJson.title, bodyJson.user))
+    if(script === undefined){
+        throw new DataError("Script with that name does not exist")
+    }
+    return script;
 }
 
 export const parseSchedule = async (bodyJson: any) : Promise<Date|null> => {

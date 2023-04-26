@@ -1,6 +1,6 @@
 import http = require('http');
 import {createDB} from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, parseLoad} from "./parser";
 
 createDB();
 const PORT = 3001;
@@ -69,7 +69,6 @@ const server = http.createServer((req, res) => {
                                 message:error.message
                             })
                         }).then( _=> {
-                        console.log(JSON.parse(response))
                         res.end(response)
                     })
                 } else if (bodyJSON.type == 'execScript') {
@@ -85,17 +84,15 @@ const server = http.createServer((req, res) => {
                                 message:error.message
                         })
                     }).then( _=> {
-                        console.log(JSON.parse(response))
                         res.end(response)
                     })
-
                 } else if (bodyJSON.type == 'scheduleScript') {
                     parseSchedule(bodyJSON)
                         .then(result => {
                             if(result){
                                 response = JSON.stringify({
                                     status:'ok',
-                                    message: 'Scheduled on ${result}'
+                                    message: `Scheduled on ${result}`
                                 })
                             } else {
                                 response = JSON.stringify({
@@ -109,11 +106,25 @@ const server = http.createServer((req, res) => {
                             message: error.message
                         })
                     }).then( _=> {
-                        console.log(JSON.parse(response))
+                        res.end(response)
+                    })
+                } else if (bodyJSON.type == 'loadScript') {
+                    parseLoad(bodyJSON)
+                        .then(script => {
+                            response = JSON.stringify({
+                                status:'ok',
+                                message: `Loaded script ${script.title} succesfully`,
+                                source: script.source
+                            })
+                        }).catch(error => {
+                        response = JSON.stringify({
+                            status:'error',
+                            message:error.message
+                        })
+                    }).then( _=> {
                         res.end(response)
                     })
                 }
-
             } catch (err) {
                 console.error(err)
             }
