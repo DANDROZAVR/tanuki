@@ -16,7 +16,7 @@ export interface Script {
 interface Schedule {
     id: number;
     options: ScheduleOptions,
-    scriptID: Script['id'];
+    scriptID: Script['id'],
 }
 
 
@@ -27,11 +27,20 @@ enum ScheduleTag {
 }
 interface ScheduleOptions {
     tag: ScheduleTag,
-    once: OnceOptions | null,
+    once: OnceOptions | undefined,
+    times: NotOnceOptions | undefined,
+    lastRunFeedback: any,
+    scriptOptions: any,
 }
 
 interface OnceOptions {
     date: Date,
+}
+
+interface NotOnceOptions {
+    timesExecution: number,
+    minWaitMinute: number,
+    maxWaitMinute: number
 }
 
 interface Calendar {
@@ -89,25 +98,39 @@ export function insertUser(name: string): Promise<boolean> {
     })
 }
 
-export function insertIntoSchedule(scriptID: number, options: JSON): Promise<boolean> {
+// TODO: probably all function shoule look like this (serialization)
+export const insertIntoSchedule = async(scriptID: number, options: any): Promise<number> => {
     return new Promise((resolve, reject) => {
-        const insert = db.prepare(
-            "INSERT INTO schedule (scriptID, options) VALUES (?, ?)"
-        );
-        try {
-            insert.run([scriptID, JSON.stringify(options)], (error) => {
-                if (error == null) {
-                    resolve(true);
-                } else {
-                    reject(error);
-                }
-            });
-        } catch (err) {
-            console.error("Error inserting into schedule:", err);
-            return false;
-        }
+        db.serialize(() => {
+            db.run("BEGIN TRANSACTION");
+            const insert = db.prepare(
+                "INSERT INTO schedule (scriptID, options) VALUES (?, ?)"
+            );
+            try {
+                insert.run([scriptID, JSON.stringify(options)], function (error) {
+                    if (error == null) {
+                        const id = this.lastID;
+                        db.run("COMMIT", (err) => {
+                            if (err == null) {
+                                resolve(id);
+                            } else {
+                                reject(err);
+                            }
+                        });
+                    } else {
+                        db.run("ROLLBACK");
+                        reject(error);
+                    }
+                });
+            } catch (err) {
+                console.error("Error inserting into schedule:", err);
+                db.run("ROLLBACK");
+                reject(err);
+            }
+        });
     });
 }
+
 
 export function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -129,6 +152,25 @@ export function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<
     });
 }
 
+export function updateScheduleOptionsByID(scheduleID: number, options: any): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const update = db.prepare(
+            "UPDATE schedule SET options = ? WHERE id = ?"
+        )
+        try {
+            update.run([JSON.stringify(options), scheduleID], (error) => {
+                if (error == null) {
+                    resolve(true)
+                } else {
+                    reject(error)
+                }
+            })
+        } catch (err) {
+            console.error("Error in update schedule")
+            return false
+        }
+    })
+}
 
 export function getScriptByName(title: string, userName: string): Promise<Script> {
     return new Promise((resolve, reject) => {
@@ -187,16 +229,16 @@ export function getUserID(name: string) : Promise<number> {
     })
 }
 
-export function getScheduleByScriptID(scriptID: number): Promise<Schedule[]> {
+export function getScheduleByScriptIDAndOptions(scriptID: number, options: any): Promise<Schedule> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT * FROM schedule WHERE schedule.scriptID = ?"
+            "SELECT * FROM schedule WHERE schedule.scriptID = ? AND schedule.options = ?"
         );
-        select.all([scriptID], (err, rows) => {
+        select.get([scriptID, JSON.stringify(options)], (err, row) => {
             if (err) {
                 reject(err);
             } else {
-                resolve(rows as Schedule[]);
+                resolve(row as Schedule)
             }
         });
     });

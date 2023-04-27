@@ -1,6 +1,7 @@
 import http = require('http');
 import {createDB} from "./sql/database";
 import {parseExecute, parseInsert, parseSchedule} from "./parser";
+import {configureSchedule} from "./scheduler";
 
 createDB();
 const PORT = 3001;
@@ -122,6 +123,8 @@ const server = http.createServer((req, res) => {
         res.end();
     }
 })
+
+configureSchedule()
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

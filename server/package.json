@@ -18,7 +18,8 @@
     "dotenv": "^16.0.3",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
-    "puppeteer": "^19.9.1"
+    "puppeteer": "^19.9.1",
+    "@chainsafe/dappeteer": "5.0.1"
   },
   "devDependencies": {
     "@types/node": "^18.15.10",

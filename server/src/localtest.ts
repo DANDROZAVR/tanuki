@@ -5,22 +5,66 @@ import {
     insertUser,
     insertScriptByName,
     getScriptByName,
-    getScriptByUserID
+    getScriptByUserID, updateScheduleOptionsByID
 } from "./sql/database";
 import {parseExecute, parseInsert, parseSchedule} from "./parser";
-import {dumpyConstant} from "./scheduler"
+import {configureSchedule} from "./scheduler";
+
 const main = async () => {
     createDB()
-    const script : any = (await getScriptByUserID("script1-3-2023-13-55-38.tnk", 3))
-    console.log(script)
+    configureSchedule()
     //console.log(dumpyConstant)
-    await parseExecute({
-            user: "admin",
-            title: "notion4",
+    /*await parseExecute({
+        user: "admin",
+        title: "notion4",
+    })*/
+    /*await parseExecute({
+        user: "crypto",
+        title: "scriptTitle",
+    })*/
+    /*const date = await parseSchedule({
+        user: "crypto",
+        title: "scriptTitle",
+        scheduleOptions: {
+            tag: "once",
+            once: {
+                date: "2023-04-18 10:46:40"
+            }
         }
-    )
+    })*/
+    /*const date = await parseSchedule({
+        user: "admin",
+        title: "notion4",
+        scheduleOptions: {
+            tag: "times",
+            times: {
+                timesExecution: 4,
+                minWaitMinute: 60 * 12,
+                maxWaitMinute: 60 * 12
+            },
+        }
+    })*/
+    /*const date = await parseSchedule({
+        user: "crypto",
+        title: "scriptTitle",
+        scheduleOptions: {
+            tag: "times",
+            times: {
+                timesExecution: 4,
+                minWaitMinute: 60 * 23,
+                maxWaitMinute: 60 * 30
+            },
+            scriptOptions: {
+                tokenName: 'USDC',
+                tokenAmountMin: 10,
+                tokenAmountMax: 15,
+            }
+        }
+    })*/
+    //await updateScheduleOptionsByID(44, {})
+    // TODO: WRONG. CHANGE IT
+    //await insertUser('crypto')
     //console.log(await getFirstFromCalendar())
-    console.log(dumpyConstant)
     /*const date = await parseSchedule({
         user: "admin",
         title: "title",

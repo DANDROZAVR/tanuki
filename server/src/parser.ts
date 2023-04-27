@@ -1,4 +1,10 @@
-import {insertScriptByName, getScriptByName, insertIntoSchedule, insertIntoCalendar} from "./sql/database";
+import {
+    insertScriptByName,
+    getScriptByName,
+    insertIntoSchedule,
+    insertIntoCalendar,
+    updateScheduleOptionsByID, getScheduleByID
+} from "./sql/database";
 import {saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
 import {Script} from "./sql/database";
@@ -13,6 +19,8 @@ import {Script} from "./sql/database";
  *      source: "source",
  *  }
  */
+
+const MAX_TIMES_EXECUTION = 1000
 
 class DataError extends Error{}
 
@@ -48,7 +56,12 @@ export const parseExecute = async (bodyJson: any) : Promise<void> => {  // todo:
     if(script === undefined){
         throw new DataError("Script with that name does not exist")
     }
-    createWorker({workerData: script})
+    createWorker({
+        workerData: {
+            script: script,
+            scriptOptions: bodyJson.scriptOptions
+        }
+    })
 }
 
 export const parseSchedule = async (bodyJson: any) : Promise<Date|null> => {
@@ -61,7 +74,7 @@ export const parseSchedule = async (bodyJson: any) : Promise<Date|null> => {
     return addToCalendar(script, options)
 }
 
-export const addToCalendar = async (script: any, options: any, firstTime: boolean = true) : Promise<Date | null> => {
+export const addToCalendar = async (script: any, options: any, firstTime: boolean = true, scheduleID: number = -1) : Promise<Date | null> => {
     const tag = options.tag
     if (!(tag == 'once' || tag == 'every' || tag == 'times'))
         return null;
@@ -69,21 +82,34 @@ export const addToCalendar = async (script: any, options: any, firstTime: boolea
     if (tag == 'once') {
         if (!firstTime)
             return null;
-        if (!checkContainsTags(options, ['once']))
-            return null; // todo: temp, not required later
-        date = options.once
-        if (!(await insertIntoSchedule(script.id, options))) {
-            return null;
-        }
+        if (!checkContainsTags(options, ['once'])) return null; // TODO: can we find for a pathes? like once.smth.smth
+        const onceOptions = options.once
+        if (!checkContainsTags(onceOptions, ['date'])) return null;
+        date = onceOptions.date
     } else
     if (tag == 'every') {
         return null;
     } else
     if (tag == 'times') {
-        return null;
+        if (!checkContainsTags(options, ['times'])) return null;
+        const timesOptions = options.times
+        if (!checkContainsTags(timesOptions, ['timesExecution', 'minWaitMinute', 'maxWaitMinute']) || timesOptions.timesExecution <= 0 || timesOptions.timesExecution > MAX_TIMES_EXECUTION) return null;
+        const minutesToWait = getRandomNumber(timesOptions.minWaitMinute, timesOptions.maxWaitMinute)
+        date = new Date(Date.now() + minutesToWait * 60 * 1000)
+        timesOptions.timesExecution -= 1
     } else return null;
-    await insertIntoCalendar(script.id, date)
+    if (firstTime) {
+        const id = await insertIntoSchedule(script.id, options);
+        const schedule = await getScheduleByID(id)
+        scheduleID = schedule.id
+    } else {
+        await updateScheduleOptionsByID(scheduleID, options)
+    }
+    await insertIntoCalendar(scheduleID, date)
     console.log(`script added: ${script.title} ${date}`)
     return new Date(date)
 }
 
+function getRandomNumber(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
