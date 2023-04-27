@@ -1,7 +1,7 @@
 import './App.css';
 import Editor from '@monaco-editor/react';
 import React from 'react';
-import { sendScript, execScript } from './network/client.ts';
+import { sendScript, execScript, loadScript } from './network/client.ts';
 import 'reactflow/dist/style.css';
 
 function App() {
@@ -11,6 +11,7 @@ function App() {
   function onEditorMount(editor, monaco) {
     editorRef.current = editor;
   }
+
 
   return (
     <div>
@@ -28,21 +29,31 @@ function App() {
           type="button"
           onClick={() => {
             setLastScriptName(sendScript(editorRef));
-            console.log(lastScriptName);
           }}
         >
           Send
         </button>
       </section>
       <section className="form-section">
-        <input id="scriptToRun" type="text" placeholder="script1-1-2001-1-1-1.tnk" />
+        <input id="scriptToRun" type="text" placeholder="my_script.tnk" />
         <button
           type="button"
           onClick={() => {
-            execScript(lastScriptName);
+            execScript();
           }}
         >
           Run script
+        </button>
+      </section>
+      <section className="form-section">
+        <input id="scriptToLoad" type="text" placeholder="my_script.tnk" />
+        <button
+          type="button"
+          onClick={() => {
+            loadScript();
+          }}
+        >
+          Load script
         </button>
       </section>
     </div>

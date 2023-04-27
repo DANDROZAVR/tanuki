@@ -1,3 +1,4 @@
+
 export function sendScript(ref: string) {
   const script = ref.current.getValue();
   const timestamp = new Date();
@@ -55,4 +56,32 @@ export function execScript() {
       title: scriptName,
     })
   );
+}
+
+export function loadScript() {
+
+  const input = document.getElementById("scriptToLoad") as HTMLInputElement | null;
+  const scriptName = input?.value;
+
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  // TODO: custom server address
+  const url = 'http://localhost:3001';
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      let response = JSON.parse(request.response)
+      alert(response.message);
+      // TODO: if response.status == 'ok' load response.source to editor
+    }
+  };
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'loadScript',
+      user: 'admin',
+      title: scriptName,
+    })
+  );
+
 }
