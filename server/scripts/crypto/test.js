@@ -1,6 +1,11 @@
 const { configureDappeteer } = require("../../tanuki-scripts");
+const {configurePupeteer} = require("../../tanuki-scripts");
 
 const start = async () => {
-    await configureDappeteer('smth')
+    configureDappeteer('seed', false)
+    /*await configurePupeteer("new", ['smth'], {
+        url: 'smth',
+        port: '334'
+    })*/
 }
 start()
