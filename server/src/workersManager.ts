@@ -8,7 +8,7 @@ ensureDirectoryExistence(logs_errors)
 const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
-const maxErrorsRetrying = 1
+const maxErrorsRetrying = 3
 let workersInWork : [Worker, any, number, any][] = []
 setInterval(() => {
     for (let i = workersInWork.length - 1; i >= 0; --i) {
@@ -25,7 +25,7 @@ setInterval(() => {
             // finished with an error. was runned x - 1 time (initially 2 means an error)
             if (exitCode <= maxErrorsRetrying) {
                 console.log('retrying task "' + workerOptions.workerData.script.title + '"')
-                createWorker(workerOptions, -exitCode)
+                createWorker(workerOptions, workerOptions.callback, -exitCode)
             } else {
                 const error = `task "${workerOptions.workerData.script.title}" failed ${maxErrorsRetrying} times`
                 console.log(error)
@@ -41,7 +41,7 @@ setInterval(() => {
                 if (workersInWork[i].length >= 3) {
                     workerOptions.callback(workersInWork[i][3])
                 } else {
-                    workerOptions.callback(null)
+                    workerOptions.callback(workerOptions.workerData.lastRunFeedback)
                 }
 
             }
@@ -100,10 +100,12 @@ const enableLogs = (worker: Worker) => {
             // TODO: do this callback is executing in the main thread? there won't be any problems with?
             if (code !== 0) {
                 console.error(`Worker stopped with exit code ${code}`);
-                if (!workersInWork[index][2])
+                if (!workersInWork[index][2]) {
                     workersInWork[index][2] = -1;
+                }``
             } else {
                 console.log('worker stopped normally')
+                workersInWork[index][2] = 0; // means we exited with 0 code and we don't want longer to retry
             }
             workersInWork[index][2] = -workersInWork[index][2] + 1
         }

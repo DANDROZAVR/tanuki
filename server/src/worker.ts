@@ -17,7 +17,9 @@ const waitForConfirmationFromMainThread = async () => {
 const asyncMainFunction = async () => {
     const pathToJS = workerData.script.path
     const module = loadJSFromPath('../../' + pathToJS)
-    const response = await module.start(workerData.lastRunFeedback, workerData.scriptOptions)
+    let response = await module.start(workerData.lastRunFeedback, workerData.scriptOptions)
+    if (response === undefined)
+        response = {}
     console.log(response)
     //const response = {}
     // @ts-ignore

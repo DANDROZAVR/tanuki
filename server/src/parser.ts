@@ -111,7 +111,7 @@ export const addToCalendar = async (script: any, options: any, firstTime: boolea
     if (firstTime) {
         const id = await insertIntoSchedule(script.id, options);
         const schedule = await getScheduleByID(id)
-        scheduleID = schedule.id
+        scheduleID = id
     } else {
         await updateScheduleOptionsByID(scheduleID, options)
     }
