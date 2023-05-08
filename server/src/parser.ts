@@ -36,7 +36,7 @@ export const parseInsert = async (bodyJson: any) : Promise<void> => {
         throw new DataError('not a valid insert request')
     const title = bodyJson.title
     const user = bodyJson.user
-    const path = 'scripts/' + user + '/' + title + '.js'
+    const path = 'scripts/' + user + '/' + title + '.tnk';
     const source = bodyJson.source
     await insertScriptByName(title, source, user, path)
         .then(_ => saveJSToPath(path, source))
