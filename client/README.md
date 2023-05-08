@@ -3,7 +3,7 @@
 ## Development
 
 To run an app in the `dev` environment, type:
-
+npm s
 ```bash
 npm start
 ```

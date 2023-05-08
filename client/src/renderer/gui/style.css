@@ -1,0 +1,93 @@
+body {
+  font-family: sans-serif;
+  background-color: #222;
+  color: #DDD;
+}
+
+.container {
+  display: flex;
+}
+
+.vertSplit {
+  display: flex;
+}
+
+.vertSplitCol {
+  width: 50%;
+}
+
+.red {
+  background-color: red;
+}
+
+.flowContainer {
+  width: 100%;
+  height: 100%;
+}
+
+.nodeSurface {
+  color: #DDD;
+  background: #333;
+  outline: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin: 0.25rem;
+  min-width: 125px;
+  padding: 1rem;
+}
+
+
+#text-editor {
+  /*width: 100%;*/
+}
+
+section.form-section {
+  margin: 5px;
+  padding: 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #333;
+}
+
+button {
+  background-color: #333;
+  color: #DDD;
+  border: 0px;
+  margin: 5px;
+  padding: 0.5rem;
+}
+
+input {
+  color: #DDD;
+  background: #111;
+  outline: none;
+  border: 1px solid #111;
+  border-radius: 1px;
+  font-size: 1rem;
+  margin: 0.25rem;
+  min-width: 125px;
+  padding: 0.3rem;
+}
+
+input:focus {
+  border-radius: 5px;
+  border: 1px solid #555;
+}
+/*input:optional {
+  border-color: gray;
+}
+input:required {
+  border-color: black;
+}
+input:invalid {
+  border-color: red;
+}
+
+input:required:focus:valid {
+  background: url("https://assets.digitalocean.com/labs/icons/hand-thumbs-up.svg") no-repeat 95% 50% lightgreen;
+  background-size: 25px;
+}
+input:focus:invalid {
+  background: url("https://assets.digitalocean.com/labs/icons/exclamation-triangle-fill.svg") no-repeat 95% 50% lightsalmon;
+  background-size: 25px;
+}*/
