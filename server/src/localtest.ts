@@ -50,14 +50,14 @@ const main = async () => {
         scheduleOptions: {
             tag: "times",
             times: {
-                timesExecution: 4,
-                minWaitMinute: 60 * 23,
-                maxWaitMinute: 60 * 30
+                timesExecution: 1,
+                minWaitMinute: 0,
+                maxWaitMinute: 0,
             },
             scriptOptions: {
                 tokenName: 'USDC',
-                tokenAmountMin: 10,
-                tokenAmountMax: 15,
+                tokenAmountMin: 8,
+                tokenAmountMax: 10,
             }
         }
     })*/
