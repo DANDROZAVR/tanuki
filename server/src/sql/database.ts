@@ -101,33 +101,27 @@ export function insertUser(name: string): Promise<boolean> {
 // TODO: probably all function shoule look like this (serialization)
 export const insertIntoSchedule = async(scriptID: number, options: any): Promise<number> => {
     return new Promise((resolve, reject) => {
-        db.serialize(() => {
-            db.run("BEGIN TRANSACTION");
             const insert = db.prepare(
                 "INSERT INTO schedule (scriptID, options) VALUES (?, ?)"
             );
             try {
-                insert.run([scriptID, JSON.stringify(options)], function (error) {
+                insert.run([scriptID, JSON.stringify(options)], async function (error) {
                     if (error == null) {
                         const id = this.lastID;
-                        db.run("COMMIT", (err) => {
-                            if (err == null) {
-                                resolve(id);
-                            } else {
-                                reject(err);
-                            }
-                        });
+                        if (error == null) {
+                            resolve(id);
+                        } else {
+                            reject(error);
+                        }
                     } else {
-                        db.run("ROLLBACK");
                         reject(error);
                     }
                 });
             } catch (err) {
                 console.error("Error inserting into schedule:", err);
-                db.run("ROLLBACK");
                 reject(err);
             }
-        });
+        //});
     });
 }
 
