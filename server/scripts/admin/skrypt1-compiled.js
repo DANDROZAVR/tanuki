@@ -9,18 +9,9 @@ async function start() {
 		return await page.evaluate(name => name.textContent, getXpath);
 	}
 
-	await page.goto('https://www.alpertron.com.ar/DILOG.HTM');
-	await page.type('#base', '13');
-	await page.type('#mod', '10^18+31');
-	for (num of ['2', '3', '5', '7'])
-	{
-		console.log(num);
-		await page.click('#pow', {clickCount: 3});
-		await page.type('#pow', num);
-		await page.click('#dlog');
-		text = await getText('//p[contains(text(), "+ 1")]');;
-		console.log(text);
-	}
+	await page.goto('https://developers.google.com/web/');
+	await page.type('.devsite-search-field', 'Headless Chrome');
+	await page.keyboard.press('Enter');
 }
 
 exports.start = start;
