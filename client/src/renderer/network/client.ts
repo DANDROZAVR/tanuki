@@ -1,9 +1,12 @@
+import React from 'react';
+import FileState from './fileState.ts';
 
-export function sendScript(ref: string) {
+export async function sendScript(ref: string) {
   const script = ref.current.getValue();
-  const timestamp = new Date();
 
-  const input = document.getElementById("scriptTitle") as HTMLInputElement | null;
+  const input = document.getElementById(
+    'scriptTitle'
+  ) as HTMLInputElement | null;
   const scriptName = input?.value;
 
   /* establish http connection */
@@ -13,8 +16,9 @@ export function sendScript(ref: string) {
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
-      let response = JSON.parse(request.response)
+      const response = JSON.parse(request.response);
       // TODO: if response.status = 'error' make alert appear accordingly
+      // eslint-disable-next-line no-alert
       alert(response.message);
     }
   };
@@ -26,15 +30,15 @@ export function sendScript(ref: string) {
       title: scriptName,
       source: script,
     })
-
   );
 
   return scriptName;
 }
 
-export function execScript() {
-
-  const input = document.getElementById("scriptToRun") as HTMLInputElement | null;
+export async function execScript() {
+  const input = document.getElementById(
+    'scriptToRun'
+  ) as HTMLInputElement | null;
   const scriptName = input?.value;
 
   /* establish http connection */
@@ -44,7 +48,8 @@ export function execScript() {
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
-      let response = JSON.parse(request.response)
+      const response = JSON.parse(request.response);
+      // eslint-disable-next-line no-alert
       alert(response.message);
     }
   };
@@ -58,9 +63,12 @@ export function execScript() {
   );
 }
 
-export function loadScript() {
-
-  const input = document.getElementById("scriptToLoad") as HTMLInputElement | null;
+export async function loadScript(
+  setScriptState: React.Dispatch<React.SetStateAction>
+) {
+  const input = document.getElementById(
+    'scriptToLoad'
+  ) as HTMLInputElement | null;
   const scriptName = input?.value;
 
   /* establish http connection */
@@ -70,9 +78,14 @@ export function loadScript() {
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
-      let response = JSON.parse(request.response)
+      const response = JSON.parse(request.response);
+      // eslint-disable-next-line no-alert
       alert(response.message);
-      // TODO: if response.status == 'ok' load response.source to editor
+      setScriptState({
+        name: scriptName,
+        value: response.source,
+        defaultLanguage: 'typescript',
+      } as FileState);
     }
   };
   request.setRequestHeader('Content-type', 'application/json');
@@ -83,5 +96,4 @@ export function loadScript() {
       title: scriptName,
     })
   );
-
 }

@@ -67,6 +67,7 @@ export const createWorker = (workerOptions: any, callback: any = undefined, exit
         workerOptions['callback'] = callback
     }
     const workerPath = './build/worker.js'
+    console.log(workerOptions)
     const worker = new Worker(workerPath, workerOptions)
     enableLogs(worker)
     workersInWork.push([worker, workerOptions, exitCode, undefined])

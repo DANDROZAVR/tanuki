@@ -2,22 +2,18 @@
   "description": "A foundation for scalable desktop apps",
   "keywords": [
     "electron",
-    "boilerplate",
     "react",
     "typescript",
     "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
+    "webpack"
   ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/DENDROZAVR/tanuki#readme",
   "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
+    "url": "https://github.com/DENDROZAVR/tanuki/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
+    "url": "git+https://github.com/DENDROZAVR/tanuki.git"
   },
   "license": "MIT",
   "author": {

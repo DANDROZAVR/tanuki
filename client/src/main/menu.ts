@@ -200,6 +200,7 @@ export default class MenuBuilder {
           {
             label: '&Open',
             accelerator: 'Ctrl+O',
+            click: () => {},
           },
           {
             label: '&Close',
