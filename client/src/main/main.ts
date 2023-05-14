@@ -1,9 +1,9 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, nativeTheme } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
-import MenuBuilder from './menu';
+import { log } from 'electron-log';
+import { MenuBuilder } from './menu';
 import { resolveHtmlPath } from './util';
 
 class AppUpdater {
@@ -26,6 +26,13 @@ if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
 }
+
+ipcMain.handle('theme:set', (event, name: string) => {
+  console.log(name);
+  if (['dark', 'light', 'system'].includes(name)) {
+    nativeTheme.themeSource = name;
+  }
+});
 
 const isDebug = false;
 /* process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true'; */

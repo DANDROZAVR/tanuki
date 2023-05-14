@@ -1,4 +1,4 @@
-import React, { useNodesState } from 'react';
+import React from 'react';
 import {
   ReactFlow,
   Background,
@@ -6,22 +6,13 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
-  getOutgoers,
-  useNodesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ScriptLineNode, ScriptStartNode, ScriptFinishNode } from './nodes.tsx';
 
 const initialEdges = [];
 
-const nodeColor = (node) => {
-  if (node.id === '3') {
-    return 'green';
-  }
-  return 'red';
-};
-
-function traverse(linesStates: string[], item: Node) {
+/* function traverse(linesStates: string[], item: Node) {
   let curr: Node = item;
   [curr] = getOutgoers(curr);
   let res: string = '';
@@ -30,7 +21,7 @@ function traverse(linesStates: string[], item: Node) {
     [curr] = getOutgoers(curr);
   }
   console.log(res);
-}
+} */
 
 export function NodeEditor() {
   const nodeTypes = React.useMemo(
@@ -41,6 +32,14 @@ export function NodeEditor() {
     }),
     []
   );
+  const initialNodes = [
+    {
+      id: 'node-1',
+      type: 'ScriptLineNode',
+      position: { x: 0, y: 0 },
+      data: { value: 123 },
+    },
+  ];
 
   const [nodes, setNodes] = React.useState(initialNodes);
   const [edges, setEdges] = React.useState(initialEdges);
