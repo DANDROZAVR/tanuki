@@ -1,0 +1,3 @@
+[submodule "server/tanuki-compiler"]
+	path = server/tanuki-compiler
+	url = https://github.com/FilipKon13/tanuki-compiler
