@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "npm run build && node build/listener.js",
+    "startLinux": "npm run buildLinux && node build/listener.js",
     "start:dev": "npx nodemon build/listener.js",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
-    "build": "rimraf ./build && tsc && cd tanuki-compiler/src && make && cp compile ../../",
+    "buildLinux": "rimraf ./build && tsc && cd tanuki-compiler/src && make && cp compile ../../",
     "test": "npm run build && node build/localtest.js"
   },
   "author": "",
