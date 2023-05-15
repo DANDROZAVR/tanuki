@@ -25,4 +25,8 @@ const electronHandler = {
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
+contextBridge.exposeInMainWorld('theme', {
+  set: (theme: string) => ipcRenderer.invoke('theme:set', theme),
+});
+
 export type ElectronHandler = typeof electronHandler;

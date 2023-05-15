@@ -1,7 +1,39 @@
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  body { background: #333; color: white; }
+  section.form-section { border-color: #444; }
+  .nodeSurface {
+    color: #DDD;
+    background: #333;
+  }
+  button { background-color: #222; color: #DDD; }
+  input {
+    color: #DDD;
+    background: #111;
+    border: 1px solid #111;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  body { background: #DDD; color: black; }
+  section.form-section { border-color: #BBB; }
+  button { background-color: #BBB; color: black; }
+  .nodeSurface {
+    color: #DDD;
+    background: #333;
+  }
+  input {
+    color: black;
+    background: white;
+    border: 1px solid #BBB;
+  }
+}
+
 body {
   font-family: sans-serif;
-  background-color: #222;
-  color: #DDD;
 }
 
 .container {
@@ -26,8 +58,6 @@ body {
 }
 
 .nodeSurface {
-  color: #DDD;
-  background: #333;
   outline: none;
   border-radius: 10px;
   font-size: 1rem;
@@ -46,23 +76,18 @@ section.form-section {
   padding: 10px;
   border-width: 1px;
   border-style: solid;
-  border-color: #333;
 }
 
 button {
-  background-color: #333;
-  color: #DDD;
   border: 0px;
+  border-radius: 5px;
   margin: 5px;
   padding: 0.5rem;
 }
 
 input {
-  color: #DDD;
-  background: #111;
   outline: none;
-  border: 1px solid #111;
-  border-radius: 1px;
+  border-radius: 5px;
   font-size: 1rem;
   margin: 0.25rem;
   min-width: 125px;
@@ -70,8 +95,7 @@ input {
 }
 
 input:focus {
-  border-radius: 5px;
-  border: 1px solid #555;
+  border: 1px solid #0080ff;
 }
 /*input:optional {
   border-color: gray;

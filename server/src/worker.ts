@@ -2,7 +2,8 @@ import {loadJSFromPath} from "./helpers/scriptsDymLoading";
 import { exec } from "child_process";
 
 const { isMainThread, workerData, parentPort } = require('node:worker_threads');
-const compilerPath = "compile.exe" // so far only Windows version (put this in container maybe someday?)
+// path to compiler (should be in top folder) - make sure you have binary for your platform
+const compilerPath = process.platform === 'linux' ? './compile' : 'compile.exe';
 
 const waitForConfirmationFromMainThread = async () => {
     let messagePromise = new Promise(resolve => {
@@ -17,9 +18,9 @@ const waitForConfirmationFromMainThread = async () => {
 }
 
 const compileScript = async (pathToScript: string, outputPath: string) => {
-    console.log("Compiling " + pathToScript);
+    console.log(`Compiling ${pathToScript}`);
     await new Promise((resolve, reject) => {
-        exec(compilerPath + " < " + pathToScript + " > " + outputPath, (err) => {
+        exec(`${compilerPath} < ${pathToScript} > ${outputPath}`, (err) => {
             if (err) {
                 reject(err);
             } else {
@@ -42,9 +43,6 @@ const asyncMainFunction = async () => {
     let response = await module.start(workerData.lastRunFeedback, workerData.scriptOptions);
     if (response === undefined)
         response = {};
-    // console.log(response);
-    //const response = {}
-    // @ts-ignore
     response['type'] = 'feedbackWorker';
     parentPort?.postMessage(response);
     waitForConfirmationFromMainThread();
