@@ -46,8 +46,8 @@ const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
+    console.log("GOT REQUEST")
     if (req.method === 'POST') {
-        console.log("GOT REQUEST")
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString();

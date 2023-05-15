@@ -13,16 +13,18 @@ import {configureSchedule} from "./scheduler";
 const main = async () => {
     createDB()
     configureSchedule()
+    //await insertUser('admin')
+    //await insertUser('crypto')
     //console.log(dumpyConstant)
     /*await parseExecute({
-        user: "admin",
-        title: "notion4",
+        user: "crypto",
+        title: "scriptTitle",
     })*/
     /*await parseExecute({
         user: "crypto",
         title: "scriptTitle",
     })*/
-    /*const date = await parseSchedule({
+    const date = await parseSchedule({
         user: "crypto",
         title: "scriptTitle",
         scheduleOptions: {
@@ -31,7 +33,7 @@ const main = async () => {
                 date: "2023-04-18 10:46:40"
             }
         }
-    })*/
+    })
     /*const date = await parseSchedule({
         user: "admin",
         title: "notion4",

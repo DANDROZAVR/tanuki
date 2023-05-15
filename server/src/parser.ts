@@ -38,7 +38,7 @@ export const parseInsert = async (bodyJson: any) : Promise<void> => {
     const user = bodyJson.user
     const path = 'scripts/' + user + '/' + title + '.tnk';
     const source = bodyJson.source
-    await insertScriptByName(title, source, user, path)
+    await insertScriptByName(title, source, user, path, bodyJson.pureJsCode ?? false)
         .then(_ => saveJSToPath(path, source))
         .catch(error =>{
             if(error.errno == 19){

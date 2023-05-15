@@ -11,6 +11,7 @@ export interface Script {
     source: string;
     path: string | null;
     user: User['id'];
+    pureJsCode: boolean | null
 }
 
 interface Schedule {
@@ -57,19 +58,19 @@ export function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-export function insertScriptByName(title: string, source: string, userName: string, path: string) : Promise<boolean> {
+export function insertScriptByName(title: string, source: string, userName: string, path: string, pureJsCode: boolean) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserID(userName)
-            .then(async userID => resolve(await insertScriptByID(title, source, userID, path)))
+            .then(async userID => resolve(await insertScriptByID(title, source, userID, path, pureJsCode)))
             .catch(error => reject(error))
     })
 }
 
-export function insertScriptByID(title: string, source: string, userID: number, path?: string): Promise<boolean> {
+export function insertScriptByID(title: string, source: string, userID: number, path: string, pureJsCode: boolean): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT INTO scripts (title, source, user, path) VALUES (?, ?, ?, ?)")
+        const insert = db.prepare("INSERT INTO scripts (title, source, user, path, pureJsCode) VALUES (?, ?, ?, ?, ?)")
         try {
-            insert.run([title, source, userID, path], (error) => {
+            insert.run([title, source, userID, path, pureJsCode], (error) => {
                 if (error == null)
                     resolve(true); else
                     reject(error)

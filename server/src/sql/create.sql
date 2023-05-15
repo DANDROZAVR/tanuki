@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS scripts (
     title VARCHAR(200) NOT NULL,
     source TEXT NOT NULL,
     path VARCHAR(200),
+    pureJsCode BOOLEAN,
     user INTEGER REFERENCES users,
     UNIQUE(title, user)
 );

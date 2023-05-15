@@ -20,16 +20,24 @@ const compileScript = async (pathToScript: string, outputPath: string) => {
     console.log("Compiling " + pathToScript);
     await new Promise((resolve, reject) => {
         exec(compilerPath + " < " + pathToScript + " > " + outputPath, (err) => {
-            if(err) reject(err);
-            else    resolve(undefined);
+            if (err) {
+                reject(err);
+            } else {
+                resolve(undefined);
+            }
         });
     });
 }
 
 const asyncMainFunction = async () => {
-    const pathToScript = workerData.script.path;
-    const pathToJS = pathToScript.slice(0, -4) + '-compiled.js';
-    await compileScript(pathToScript, pathToJS);
+    const pathToScript : string = workerData.script.path;
+    let pathToJS
+    if (!workerData.script.pureJsCode) {
+        pathToJS = pathToScript.slice(0, -4) + '-compiled.js';
+        await compileScript(pathToScript, pathToJS);
+    } else {
+        pathToJS = pathToScript
+    }
     const module = loadJSFromPath('../../' + pathToJS)
     let response = await module.start(workerData.lastRunFeedback, workerData.scriptOptions);
     if (response === undefined)
