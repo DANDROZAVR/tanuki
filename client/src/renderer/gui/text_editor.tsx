@@ -2,62 +2,57 @@ import './style.css';
 import React from 'react';
 import Editor from '@monaco-editor/react';
 import { sendScript, execScript, loadScript } from '../network/client.ts';
-import { startupFile } from '../fileState.ts';
 import 'reactflow/dist/style.css';
+import { RenderOptions } from '@testing-library/react';
+import { Script } from 'renderer/script';
+import { Options } from 'renderer/render_options';
 
-export function TextEditor() {
-  const [scriptState, setScriptState] = React.useState(startupFile);
+function FunctionButton({id, text, on_click} : {id:string, text:string, on_click:any}) {
+  return (<section className="form-section">
+        <input id={id} type="text" placeholder="my_script.tnk" />
+        <button type="button" onClick={on_click}>
+          {text}
+        </button>
+      </section>);
+}
+
+
+const initialScript: Script = {
+  name: "script.tnk",
+  lines: [],
+};
+
+
+export function TextEditor({renderOptions} : {renderOptions: Options}) {
+
   const editorRef = React.useRef<string>(null);
   // eslint-disable-next-line no-unused-vars
   function onEditorMount(editor, monaco) {
     editorRef.current = editor;
   }
+  console.log(initialScript);
+
+  function CodeSection() {
+    return (<section className="form-section">
+          <div id="text-editor">
+            <Editor
+              value={initialScript.lines.reduce((res,cur) => res + '\n' + cur, '')}
+              height="50vh"
+              theme="vs-dark"
+              defaultLanguage={renderOptions.defaultLanguage}
+              // eslint-disable-next-line react/jsx-no-bind
+              onMount={onEditorMount}
+            />
+          </div>
+        </section>);
+  }
 
   return (
     <div>
-      <section className="form-section">
-        <div id="text-editor">
-          <Editor
-            value={scriptState.value}
-            height="50vh"
-            theme="vs-dark"
-            defaultLanguage={scriptState.defaultLanguage}
-            // eslint-disable-next-line react/jsx-no-bind
-            onMount={onEditorMount}
-          />
-        </div>
-        <input id="scriptTitle" type="text" placeholder="my_script.tnk" />
-        <button
-          type="button"
-          onClick={() => {
-            sendScript(editorRef);
-          }}
-        >
-          Send
-        </button>
-      </section>
-      <section className="form-section">
-        <input id="scriptToRun" type="text" placeholder="my_script.tnk" />
-        <button
-          type="button"
-          onClick={() => {
-            execScript();
-          }}
-        >
-          Run script
-        </button>
-      </section>
-      <section className="form-section">
-        <input id="scriptToLoad" type="text" placeholder="my_script.tnk" />
-        <button
-          type="button"
-          onClick={() => {
-            loadScript(setScriptState);
-          }}
-        >
-          Load script
-        </button>
-      </section>
+      <CodeSection/>
+      <FunctionButton id="scriptTitle" text="Send" on_click = {() => {sendScript(editorRef);}}/>
+      <FunctionButton id="scriptToRun" text="Run script" on_click = {() => {execScript()}}/>
+      {/* <FunctionButton id="scriptToLoad" text="Load script" on_click = {() => loadScript(setScriptState)}/> */}
     </div>
   );
 }
