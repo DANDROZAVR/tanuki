@@ -3,11 +3,16 @@ import {
     getScriptByName,
     insertIntoSchedule,
     insertIntoCalendar,
+    insertUser,
+    getUserByName,
     updateScheduleOptionsByID, getScheduleByID
 } from "./sql/database";
 import {saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
-import {Script} from "./sql/database";
+import {Script, User} from "./sql/database";
+import * as sha256 from "fast-sha256";
+import * as crypto from "crypto"
+import {sleep} from "./helpers/sleep";
 
 /**
  *
@@ -74,7 +79,7 @@ export const parseLoad = async (bodyJson: any) : Promise<Script> => {
     return script;
 }
 
-export const parseSchedule = async (bodyJson: any) : Promise<Date|null> => {
+export const parseSchedule = async (bodyJson: any) : Promise<Date> => {
     if (!checkContainsTags(bodyJson, ['user', 'title', 'scheduleOptions']))
         throw new DataError('not a valid schedule request')
     const options = bodyJson.scheduleOptions
@@ -82,32 +87,33 @@ export const parseSchedule = async (bodyJson: any) : Promise<Date|null> => {
         throw new DataError('not a valid schedule request')
     const script : Script = await getScriptByName(bodyJson.title, bodyJson.user)
     return addToCalendar(script, options)
+
 }
 
-export const addToCalendar = async (script: any, options: any, firstTime: boolean = true, scheduleID: number = -1) : Promise<Date | null> => {
+export const addToCalendar = async (script: any, options: any, firstTime: boolean = true, scheduleID: number = -1) : Promise<Date> => {
     const tag = options.tag
     if (!(tag == 'once' || tag == 'every' || tag == 'times'))
-        return null;
+        throw new DataError('not a valid schedule request')
     let date : Date
     if (tag == 'once') {
         if (!firstTime)
-            return null;
-        if (!checkContainsTags(options, ['once'])) return null; // TODO: can we find for a pathes? like once.smth.smth
+            throw new DataError('not a valid schedule request')
+        if (!checkContainsTags(options, ['once'])) throw new DataError('not a valid schedule request') // TODO: can we find for a pathes? like once.smth.smth
         const onceOptions = options.once
-        if (!checkContainsTags(onceOptions, ['date'])) return null;
+        if (!checkContainsTags(onceOptions, ['date'])) throw new DataError('not a valid schedule request')
         date = onceOptions.date
     } else
     if (tag == 'every') {
-        return null;
+        throw new DataError('not a valid schedule request')
     } else
     if (tag == 'times') {
-        if (!checkContainsTags(options, ['times'])) return null;
+        if (!checkContainsTags(options, ['times'])) throw new DataError('not a valid schedule request')
         const timesOptions = options.times
-        if (!checkContainsTags(timesOptions, ['timesExecution', 'minWaitMinute', 'maxWaitMinute']) || timesOptions.timesExecution <= 0 || timesOptions.timesExecution > MAX_TIMES_EXECUTION) return null;
+        if (!checkContainsTags(timesOptions, ['timesExecution', 'minWaitMinute', 'maxWaitMinute']) || timesOptions.timesExecution <= 0 || timesOptions.timesExecution > MAX_TIMES_EXECUTION) throw new DataError('not a valid schedule request')
         const minutesToWait = getRandomNumber(timesOptions.minWaitMinute, timesOptions.maxWaitMinute)
         date = new Date(Date.now() + minutesToWait * 60 * 1000)
         timesOptions.timesExecution -= 1
-    } else return null;
+    } else throw new DataError('not a valid schedule request')
     if (firstTime) {
         const id = await insertIntoSchedule(script.id, options);
         const schedule = await getScheduleByID(id)
@@ -120,6 +126,52 @@ export const addToCalendar = async (script: any, options: any, firstTime: boolea
     return new Date(date)
 }
 
+export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
+    if (!checkContainsTags(bodyJson, ['username', 'password']))
+        throw new DataError('not a valid create user request')
+    const username = bodyJson.username
+    const password = bodyJson.password
+    await createUser(username, password)
+}
+
 function getRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+export const createUser = async(username:string, password:string) : Promise<void> => {
+    var salt = crypto.randomBytes(32)
+    var hash:Buffer;
+    crypto.pbkdf2(password, salt, 1024, 64, 'sha256', async (err, derivedKey) => {
+        if (err) throw new DataError('error encrypting users password');
+        else {
+            hash = derivedKey;
+            await insertUser(username, salt.toString('hex'), hash.toString('hex')).catch(error => {
+                if (error.errno == 19) {
+                    throw new DataError("User with that name already exist")
+                } else {
+                    throw error
+                }
+            })
+        }
+    });
+}
+
+// @ts-ignore
+export const authenticateUser = async(username:string, password:string) : Promise<boolean> => {
+    let hash:Buffer;
+    let user = await getUserByName(username)
+    const salt:Buffer = Buffer.from(user.salt, "hex")
+    let correct = await new Promise((resolve) => {
+        crypto.pbkdf2(password, salt, 1024, 64, 'sha256', (err, derivedKey) => {
+            if (err) throw new DataError('error encrypting users password');
+            else {
+                hash = derivedKey;
+                console.log(hash.toString("hex"))
+                console.log(user.hash)
+                resolve(hash.toString("hex") == user.hash)
+            }
+        });
+    })
+    // @ts-ignore
+    return correct
 }

@@ -1,19 +1,27 @@
 import {
     createDB,
     getFirstFromCalendar,
-    getUserID,
     insertUser,
     insertScriptByName,
     getScriptByName,
     getScriptByUserID, updateScheduleOptionsByID
 } from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, createUser, authenticateUser} from "./parser";
 import {configureSchedule} from "./scheduler";
-createDB()
-configureSchedule()
+
 const main = async () => {
-    await insertUser('admin')
-    await insertUser('crypto')
+    createDB()
+    configureSchedule()
+    createUser("admin", "admin");
+    authenticateUser("admin", "adamin").then(correct => {
+        console.log(correct)
+        if(correct){
+            console.log("correct password")
+        } else {
+            console.log("incorrect password")
+        }
+    })
+
     //await insertUser('admin')
     //await insertUser('crypto')
     //console.log(dumpyConstant)

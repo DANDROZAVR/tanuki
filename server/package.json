@@ -13,14 +13,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@chainsafe/dappeteer": "5.0.1",
     "@notionhq/client": "^2.2.4",
     "clear-module": "^4.1.2",
     "dotenv": "^16.0.3",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
     "puppeteer": "^19.9.1",
-    "sqlite3": "^5.1.6"
+    "@chainsafe/dappeteer": "5.0.1"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
