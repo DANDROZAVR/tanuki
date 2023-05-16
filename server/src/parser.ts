@@ -1,18 +1,16 @@
 import {
-    insertScriptByName,
     getScriptByName,
-    insertIntoSchedule,
-    insertIntoCalendar,
-    insertUser,
     getUserByName,
-    updateScheduleOptionsByID, getScheduleByID
+    insertIntoCalendar,
+    insertIntoSchedule,
+    insertScriptByName,
+    insertUser,
+    Script,
+    updateScheduleOptionsByID
 } from "./sql/database";
 import {saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
-import {Script, User} from "./sql/database";
-import * as sha256 from "fast-sha256";
 import * as crypto from "crypto"
-import {sleep} from "./helpers/sleep";
 
 /**
  *
@@ -115,9 +113,7 @@ export const addToCalendar = async (script: any, options: any, firstTime: boolea
         timesOptions.timesExecution -= 1
     } else throw new DataError('not a valid schedule request')
     if (firstTime) {
-        const id = await insertIntoSchedule(script.id, options);
-        const schedule = await getScheduleByID(id)
-        scheduleID = id
+        scheduleID = await insertIntoSchedule(script.id, options)
     } else {
         await updateScheduleOptionsByID(scheduleID, options)
     }
@@ -139,8 +135,8 @@ function getRandomNumber(min: number, max: number): number {
 }
 
 export const createUser = async(username:string, password:string) : Promise<void> => {
-    var salt = crypto.randomBytes(32)
-    var hash:Buffer;
+    const salt = crypto.randomBytes(32)
+    let hash:Buffer
     crypto.pbkdf2(password, salt, 1024, 64, 'sha256', async (err, derivedKey) => {
         if (err) throw new DataError('error encrypting users password');
         else {
@@ -161,7 +157,7 @@ export const authenticateUser = async(username:string, password:string) : Promis
     let hash:Buffer;
     let user = await getUserByName(username)
     const salt:Buffer = Buffer.from(user.salt, "hex")
-    let correct = await new Promise((resolve) => {
+    return await new Promise((resolve) => {
         crypto.pbkdf2(password, salt, 1024, 64, 'sha256', (err, derivedKey) => {
             if (err) throw new DataError('error encrypting users password');
             else {
@@ -172,6 +168,4 @@ export const authenticateUser = async(username:string, password:string) : Promis
             }
         });
     })
-    // @ts-ignore
-    return correct
 }
