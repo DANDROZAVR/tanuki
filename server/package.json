@@ -8,7 +8,7 @@
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
     "buildLinux": "rimraf ./build && tsc && cd tanuki-compiler/src && make && cp compile ../../",
-    "test": "npm run build && node build/localtest.js"
+    "test": "npm run buildLinux && node build/localtest.js"
   },
   "author": "",
   "license": "ISC",

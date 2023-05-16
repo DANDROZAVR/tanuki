@@ -1,18 +1,27 @@
 import {
     createDB,
     getFirstFromCalendar,
-    getUserID,
     insertUser,
     insertScriptByName,
     getScriptByName,
     getScriptByUserID, updateScheduleOptionsByID
 } from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, createUser, authenticateUser} from "./parser";
 import {configureSchedule} from "./scheduler";
 
 const main = async () => {
     createDB()
     configureSchedule()
+    createUser("admin", "admin");
+    authenticateUser("admin", "adamin").then(correct => {
+        console.log(correct)
+        if(correct){
+            console.log("correct password")
+        } else {
+            console.log("incorrect password")
+        }
+    })
+
     //await insertUser('admin')
     //await insertUser('crypto')
     //console.log(dumpyConstant)
@@ -24,7 +33,7 @@ const main = async () => {
         user: "crypto",
         title: "scriptTitle",
     })*/
-    const date = await parseSchedule({
+    /*const date = await parseSchedule({
         user: "crypto",
         title: "scriptTitle",
         scheduleOptions: {
@@ -33,7 +42,7 @@ const main = async () => {
                 date: "2023-04-18 10:46:40"
             }
         }
-    })
+    })*/
     /*const date = await parseSchedule({
         user: "admin",
         title: "notion4",
