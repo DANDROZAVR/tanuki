@@ -135,21 +135,24 @@ function getRandomNumber(min: number, max: number): number {
 }
 
 export const createUser = async(username:string, password:string) : Promise<void> => {
-    const salt = crypto.randomBytes(32)
-    let hash:Buffer
-    crypto.pbkdf2(password, salt, 1024, 64, 'sha256', async (err, derivedKey) => {
-        if (err) throw new DataError('error encrypting users password');
-        else {
-            hash = derivedKey;
-            await insertUser(username, salt.toString('hex'), hash.toString('hex')).catch(error => {
-                if (error.errno == 19) {
-                    throw new DataError("User with that name already exist")
-                } else {
-                    throw error
-                }
-            })
-        }
-    });
+    return await new Promise((resolve) => {
+        const salt = crypto.randomBytes(32)
+        let hash:Buffer
+        crypto.pbkdf2(password, salt, 1024, 64, 'sha256', async (err, derivedKey) => {
+            if (err) throw new DataError('error encrypting users password');
+            else {
+                hash = derivedKey;
+                await insertUser(username, salt.toString('hex'), hash.toString('hex')).catch(error => {
+                    if (error.errno == 19) {
+                        throw new DataError("User with that name already exist")
+                    } else {
+                        throw error
+                    }
+                })
+                resolve()
+            }
+        });
+    })
 }
 
 // @ts-ignore

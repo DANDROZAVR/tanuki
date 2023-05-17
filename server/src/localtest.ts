@@ -12,8 +12,8 @@ import {configureSchedule} from "./scheduler";
 const main = async () => {
     createDB()
     configureSchedule()
-    createUser("admin", "admin");
-    authenticateUser("admin", "adamin").then(correct => {
+    //await createUser("admin", "admin")
+    await authenticateUser("admin", "adamin").then(correct => {
         console.log(correct)
         if(correct){
             console.log("correct password")
@@ -21,6 +21,7 @@ const main = async () => {
             console.log("incorrect password")
         }
     })
+    console.log('next')
 
     //await insertUser('admin')
     //await insertUser('crypto')

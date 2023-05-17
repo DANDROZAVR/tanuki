@@ -31,21 +31,21 @@ const compileScript = async (pathToScript: string, outputPath: string) => {
 }
 
 const asyncMainFunction = async () => {
-    const pathToScript : string = workerData.script.path;
+    const pathToScript : string = workerData.script.path
     let pathToJS
     if (!workerData.script.pureJsCode) {
-        pathToJS = pathToScript.slice(0, -4) + '-compiled.js';
-        await compileScript(pathToScript, pathToJS);
+        pathToJS = pathToScript.slice(0, -4) + '-compiled.js'
+        await compileScript(pathToScript, pathToJS)
     } else {
         pathToJS = pathToScript
     }
     const module = loadJSFromPath('../../' + pathToJS)
-    let response = await module.start(workerData.lastRunFeedback, workerData.scriptOptions);
+    let response = await module.start(workerData.lastRunFeedback, workerData.scriptOptions)
     if (response === undefined)
-        response = {};
-    response['type'] = 'feedbackWorker';
-    parentPort?.postMessage(response);
-    waitForConfirmationFromMainThread();
+        response = {}
+    response['type'] = 'feedbackWorker'
+    parentPort?.postMessage(response)
+    await waitForConfirmationFromMainThread()
 };
 
 if (isMainThread) {

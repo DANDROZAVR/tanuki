@@ -4,22 +4,26 @@
   "description": "",
   "scripts": {
     "start-linux": "npm run build-linux && node build/listener.js",
+    "start-windows": "npm run build-windows && node build/listener.js",
     "start:dev": "npx nodemon build/listener.js",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
     "build-linux": "rimraf ./build && tsc && cd tanuki-compiler/src && make && cp compile ../../",
-    "test": "npm run build-linux && node build/localtest.js"
+    "build-windows": "rimraf ./build && tsc",
+    "test": "npm run build-linux && node build/localtest.js",
+    "test2": "npm run build-windows && node build/localtest.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@chainsafe/dappeteer": "5.1.1",
     "@notionhq/client": "^2.2.4",
     "clear-module": "^4.1.2",
     "dotenv": "^16.0.3",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
     "puppeteer": "^19.9.1",
-    "@chainsafe/dappeteer": "5.0.1"
+    "sqlite3": "https://github.com/mapbox/node-sqlite3/tarball/master"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
