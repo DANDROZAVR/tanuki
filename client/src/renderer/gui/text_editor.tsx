@@ -23,14 +23,12 @@ const initialScript: Script = {
 };
 
 
-export function TextEditor({renderOptions} : {renderOptions: Options}) {
-
+export function TextEditor({renderOptions, editorTheme} : {renderOptions: Options, editorTheme: string } ) {
   const editorRef = React.useRef<string>(null);
   // eslint-disable-next-line no-unused-vars
   function onEditorMount(editor, monaco) {
     editorRef.current = editor;
   }
-  console.log(initialScript);
 
   function CodeSection() {
     return (<section className="form-section">
@@ -38,7 +36,7 @@ export function TextEditor({renderOptions} : {renderOptions: Options}) {
             <Editor
               value={initialScript.lines.reduce((res,cur) => res + '\n' + cur, '')}
               height="50vh"
-              theme="vs-dark"
+              theme={editorTheme}
               defaultLanguage={renderOptions.defaultLanguage}
               // eslint-disable-next-line react/jsx-no-bind
               onMount={onEditorMount}

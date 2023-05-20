@@ -19,15 +19,18 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
+function setTheme(themeName: string) {
+  if (['dark', 'light', 'system'].includes(themeName)) {
+    nativeTheme.themeSource = themeName;
+  }
+}
+
+setTheme(store.get('theme'));
 
 ipcMain.on('electron-store-get', async (event, val) => {
   event.returnValue = store.get(val);
 });
+
 ipcMain.on('electron-store-set', async (event, key, val) => {
   store.set(key, val);
 });
@@ -38,10 +41,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 ipcMain.handle('theme:set', (event, name: string) => {
-  console.log(name);
-  if (['dark', 'light', 'system'].includes(name)) {
-    nativeTheme.themeSource = name;
-  }
+  setTheme(name);
+});
+
+ipcMain.handle('theme:get', () => {
+  return nativeTheme.shouldUseDarkColors;
 });
 
 const isDebug = false;

@@ -8,6 +8,7 @@ declare global {
       };
     };
     theme: {
+      get: () => boolean;
       set: (name: string) => void;
     };
   }

@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('electron', {
   },
 });
 contextBridge.exposeInMainWorld('theme', {
+  get: () => ipcRenderer.invoke('theme:get'),
   set: (theme: string) => ipcRenderer.invoke('theme:set', theme),
 });

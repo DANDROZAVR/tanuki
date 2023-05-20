@@ -2,7 +2,7 @@ import './style.css';
 import 'reactflow/dist/style.css';
 import React from 'react';
 
-export function ThemeSelector() {
+export function ThemeSelector({ updateEditorTheme }) {
   const [selected, setSelected] = React.useState(
     window.electron.store.get('theme')
   );
@@ -14,7 +14,9 @@ export function ThemeSelector() {
         const tmpSelected = event.target.value;
         setSelected(tmpSelected);
         await window.theme.set(tmpSelected);
-        window.electron.store.set('theme', tmpSelected)
+        window.electron.store.set('theme', tmpSelected);
+        const darkTheme = await window.theme.get();
+        updateEditorTheme(darkTheme ? 'vs-dark' : 'vs-light');
       }}
       defaultValue={selected}
     >

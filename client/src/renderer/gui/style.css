@@ -8,6 +8,7 @@
   .nodeSurface {
     color: #DDD;
     background: #333;
+    border: 1px solid #444;
   }
   button { background-color: #222; color: #DDD; }
   input {
@@ -22,8 +23,9 @@
   section.form-section { border-color: #BBB; }
   button { background-color: #BBB; color: black; }
   .nodeSurface {
-    color: #DDD;
-    background: #333;
+    color: #333;
+    background: #DDD;
+    border: 1px solid #444;
   }
   input {
     color: black;
@@ -58,7 +60,6 @@ body {
 }
 
 .nodeSurface {
-  outline: none;
   border-radius: 10px;
   font-size: 1rem;
   margin: 0.25rem;
