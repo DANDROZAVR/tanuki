@@ -1,19 +1,22 @@
 import './style.css';
 import 'reactflow/dist/style.css';
+import React from 'react';
 
-export function ThemeSelector(name: string) {
-  const [selected, setSelected] = React.useState(window.electron.store.get('theme'));
+export function ThemeSelector() {
+  const [selected, setSelected] = React.useState(
+    window.electron.store.get('theme')
+  );
 
   return (
-    <select id="theme-select" onChange= {
-      async(event) => {
+    <select
+      id="theme-select"
+      onChange={async (event) => {
         const tmpSelected = event.target.value;
         setSelected(tmpSelected);
         await window.theme.set(tmpSelected);
         window.electron.store.set('theme', tmpSelected)
-      }
-    }
-      defaultValue={ selected }
+      }}
+      defaultValue={selected}
     >
       <option value="light">Light</option>
       <option value="dark">Dark</option>
