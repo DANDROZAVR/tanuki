@@ -1,8 +1,4 @@
 import './style.css';
-import React from 'react';
-import Editor from '@monaco-editor/react';
-import { sendScript, execScript, loadScript } from '../network/client.ts';
-import { startupFile } from '../fileState.ts';
 import 'reactflow/dist/style.css';
 
 export function ThemeSelector(name: string) {

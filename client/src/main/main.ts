@@ -89,6 +89,8 @@ const createWindow = async () => {
     },
   });
 
+  mainWindow.maximize();
+
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   mainWindow.on('ready-to-show', () => {
@@ -105,6 +107,14 @@ const createWindow = async () => {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // mainWindow.webContents.on('before-input-event', (event, input) => {
+  //   if (input.control && input.key.toLowerCase() === 'i') {
+  //     console.log('Pressed Control+I')
+  //     event.preventDefault()
+  //   }
+  // });
+
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();

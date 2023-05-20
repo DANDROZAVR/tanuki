@@ -1,8 +1,10 @@
 import { Database } from 'sqlite3';
 import fs from 'fs';
-interface User {
+export interface User {
     id: number;
     name: string;
+    salt: string;
+    hash: string;
 }
 
 export interface Script {
@@ -10,6 +12,7 @@ export interface Script {
     title: string;
     source: string;
     path: string | null;
+    pureJScode: boolean;
     user: User['id'];
 }
 
@@ -50,26 +53,25 @@ interface Calendar {
 }
 
 
-const db = new Database('temp.db');
-// Read and execute the SQL query in ./sql/articles.sql
+const db = new Database('temp2.db');
 
 export function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-export function insertScriptByName(title: string, source: string, userName: string, path: string) : Promise<boolean> {
+export function insertScriptByName(title: string, source: string, userName: string, path: string, pureJSCode: boolean) : Promise<boolean> {
     return new Promise((resolve, reject) => {
-        getUserID(userName)
-            .then(async userID => resolve(await insertScriptByID(title, source, userID, path)))
+        getUserByName(userName)
+            .then(async user => resolve(await insertScriptByID(title, "", source, user.id, path, pureJSCode)))
             .catch(error => reject(error))
     })
 }
 
-export function insertScriptByID(title: string, source: string, userID: number, path?: string): Promise<boolean> {
+export function insertScriptByID(title: string, description: string, source: string, userID: number, path: string, pureJSCode: boolean): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT INTO scripts (title, source, user, path) VALUES (?, ?, ?, ?)")
+        const insert = db.prepare("INSERT INTO scripts (title, description, source, user, path, pureJsCode) VALUES (?, ?, ?, ?, ?, ?)")
         try {
-            insert.run([title, source, userID, path], (error) => {
+            insert.run([title, description, source, userID, path, pureJSCode], (error) => {
                 if (error == null)
                     resolve(true); else
                     reject(error)
@@ -82,11 +84,11 @@ export function insertScriptByID(title: string, source: string, userID: number, 
     })
 }
 
-export function insertUser(name: string): Promise<boolean> {
+export function insertUser(name: string, salt:string, hash:string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT INTO users (name) VALUES (?)");
+        const insert = db.prepare("INSERT INTO users (name, salt, hash) VALUES (?, ?, ?)");
         try {
-            insert.run([name], (error) => {
+            insert.run([name, salt, hash], (error) => {
                 if (error == null)
                     resolve(true); else
                     reject(error)
@@ -168,8 +170,8 @@ export function updateScheduleOptionsByID(scheduleID: number, options: any): Pro
 
 export function getScriptByName(title: string, userName: string): Promise<Script> {
     return new Promise((resolve, reject) => {
-        getUserID(userName)
-            .then(async userID => resolve(await getScriptByUserID(title, userID)))
+        getUserByName(userName)
+            .then(async user => resolve(await getScriptByUserID(title, user.id)))
             .catch(error => reject(error))
     })
 }
@@ -208,16 +210,16 @@ export function getScriptByID(scriptID: number): Promise<Script> {
     });
 }
 
-export function getUserID(name: string) : Promise<number> {
+export function getUserByName(name: string) : Promise<User> {
     return new Promise((resolve, reject) => {
-        const selectId = db.prepare("SELECT ID FROM users WHERE users.name == ?")
+        const selectId = db.prepare("SELECT * FROM users WHERE users.name == ?")
         selectId.get([name], (err, row) => {
             if (err)
                 reject(err); else
             if (row === undefined)
                 reject(`There are no users with the name ${name}`); else {
                 // @ts-ignore
-                resolve(row.id);
+                resolve(row);
             }
         })
     })

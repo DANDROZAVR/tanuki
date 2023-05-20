@@ -1,22 +1,34 @@
 import {
     createDB,
     getFirstFromCalendar,
-    getUserID,
     insertUser,
     insertScriptByName,
     getScriptByName,
     getScriptByUserID, updateScheduleOptionsByID
 } from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, createUser, authenticateUser} from "./parser";
 import {configureSchedule} from "./scheduler";
 
 const main = async () => {
     createDB()
     configureSchedule()
+    //await createUser("admin", "admin")
+    await authenticateUser("admin", "adamin").then(correct => {
+        console.log(correct)
+        if(correct){
+            console.log("correct password")
+        } else {
+            console.log("incorrect password")
+        }
+    })
+    console.log('next')
+
+    //await insertUser('admin')
+    //await insertUser('crypto')
     //console.log(dumpyConstant)
     /*await parseExecute({
-        user: "admin",
-        title: "notion4",
+        user: "crypto",
+        title: "scriptTitle",
     })*/
     /*await parseExecute({
         user: "crypto",

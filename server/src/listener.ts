@@ -1,6 +1,6 @@
 import http = require('http');
 import {createDB} from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule, parseLoad} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, parseLoad, parseCreateUser} from "./parser";
 import {configureSchedule} from "./scheduler";
 
 createDB();
@@ -12,6 +12,8 @@ const PORT = 3001;
  *      1) insertScript
  *      2) execScript
  *      3) scheduleScript
+ *      4) loadScript
+ *      5) createUser
  *      4) TODO
  *  b) TODO
  *
@@ -41,13 +43,20 @@ const PORT = 3001;
  *          2) '"max": number' max --..--
  *
  *
+ * Every createUser should have
+ *  a) username
+ *  b) password
+ *
+ *
  */
+
+
 const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
+    console.log("GOT REQUEST")
     if (req.method === 'POST') {
-        console.log("GOT REQUEST")
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString();
@@ -64,12 +73,12 @@ const server = http.createServer((req, res) => {
                                 status:'ok',
                                 message: `Saved script ${bodyJSON.title}`
                             })
-                        }).catch(error => {
-                            response = JSON.stringify({
-                                status:'error',
-                                message:error.message
-                            })
-                        }).then( _=> {
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:'error',
+                            message:error.message
+                        })
+                    }).then( _=> {
                         res.end(response)
                     })
                 } else if (bodyJSON.type == 'execScript') {
@@ -79,10 +88,10 @@ const server = http.createServer((req, res) => {
                                 status:'ok',
                                 message: `Running script ${bodyJSON.title}`
                             })
-                        }).catch(error => {
-                            response = JSON.stringify({
-                                status:'error',
-                                message:error.message
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:'error',
+                            message:error.message
                         })
                     }).then( _=> {
                         res.end(response)
@@ -90,21 +99,14 @@ const server = http.createServer((req, res) => {
                 } else if (bodyJSON.type == 'scheduleScript') {
                     parseSchedule(bodyJSON)
                         .then(result => {
-                            if(result){
                                 response = JSON.stringify({
                                     status:'ok',
                                     message: `Scheduled on ${result}`
                                 })
-                            } else {
-                                response = JSON.stringify({
-                                    status:'error',
-                                    message: ''
-                                })
-                            }
-                        }).catch(error=> {
+                        }).catch((error: any) => {
                         response = JSON.stringify({
-                            status: 'error',
-                            message: error.message
+                            status:'error',
+                            message:error.message
                         })
                     }).then( _=> {
                         res.end(response)
@@ -116,6 +118,21 @@ const server = http.createServer((req, res) => {
                                 status:'ok',
                                 message: `Loaded script ${script.title} succesfully`,
                                 source: script.source
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:'error',
+                            message:error.message
+                        })
+                    }).then((_: any)=> {
+                        res.end(response)
+                    })
+                } else if (bodyJSON.type == 'createUser') {
+                    parseCreateUser(bodyJSON)
+                        .then(_ => {
+                            response = JSON.stringify({
+                                status:'ok',
+                                message: `Created new user ${bodyJSON.username} succesfully`,
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
