@@ -1,9 +1,15 @@
-import { ElectronHandler } from 'main/preload';
-
+/* eslint-disable no-unused-vars */
 declare global {
-  // eslint-disable-next-line no-unused-vars
   interface Window {
-    electron: ElectronHandler;
+    electron: {
+      store: {
+        get: (key: string) => any;
+        set: (key: string, val: any) => void;
+      };
+    };
+    theme: {
+      set: (name: string) => void;
+    };
   }
 }
 
