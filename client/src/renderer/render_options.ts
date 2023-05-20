@@ -3,5 +3,5 @@ export interface Options {
 }
 
 export const renderOptions: Options = {
-  defaultLanguage: 'typescript',
+  defaultLanguage: 'javascript',
 };

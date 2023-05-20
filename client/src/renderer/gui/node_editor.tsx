@@ -9,7 +9,9 @@ import {
   addEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { sendScript } from 'renderer/network/client';
 import { ScriptLineNode, ScriptStartNode, ScriptFinishNode } from './nodes.tsx';
+import { FunctionButton } from './util';
 
 /* function traverse(linesStates: string[], item: Node) {
   let curr: Node = item;
@@ -73,7 +75,7 @@ export function NodeEditor() {
         id: n_id,
         type: 'scriptLine',
         position: {x: x_pos, y: y_pos},
-        data: {}
+        data: {line:''}
       }
     ]);
     setEdges([
@@ -84,6 +86,12 @@ export function NodeEditor() {
         target: n_id
       }
     ]);
+  };
+
+  const ParseNodes = () => {
+    const res = nodes.map((node) => node.data.line).join('\n');
+    console.log(res);
+    return res;
   };
 
   return (
@@ -103,6 +111,11 @@ export function NodeEditor() {
       </ReactFlow>
     </div>
     <SpawnButton on_click={spawnNode}/>
+    <FunctionButton id="scriptTitleNode" text="Send" on_click = {() => {
+      const script = ParseNodes(); console.log(script);
+      const input = document.getElementById('scriptTitleNode') as HTMLInputElement | null;      
+      sendScript(script, input?.value);
+      }}/>
     </>
   );
 }
