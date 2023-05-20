@@ -1,14 +1,7 @@
 import React from 'react';
 import FileState from './fileState.ts';
 
-export async function sendScript(ref: string) {
-  const script = ref.current.getValue();
-
-  const input = document.getElementById(
-    'scriptTitle'
-  ) as HTMLInputElement | null;
-  const scriptName = input?.value;
-
+export async function sendScript(script: string, scriptName:string) { // TODO: tris should take name as argument
   /* establish http connection */
   const request = new XMLHttpRequest();
   // TODO: custom server address
@@ -35,7 +28,7 @@ export async function sendScript(ref: string) {
   return scriptName;
 }
 
-export async function execScript() {
+export async function execScript() { // TODO: this should take string as argument
   const input = document.getElementById(
     'scriptToRun'
   ) as HTMLInputElement | null;

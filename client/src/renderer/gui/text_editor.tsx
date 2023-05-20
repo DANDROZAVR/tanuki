@@ -6,16 +6,7 @@ import 'reactflow/dist/style.css';
 import { RenderOptions } from '@testing-library/react';
 import { Script } from 'renderer/script';
 import { Options } from 'renderer/render_options';
-
-function FunctionButton({id, text, on_click} : {id:string, text:string, on_click:any}) {
-  return (<section className="form-section">
-        <input id={id} type="text" placeholder="my_script.tnk" />
-        <button type="button" onClick={on_click}>
-          {text}
-        </button>
-      </section>);
-}
-
+import { FunctionButton } from './util';
 
 const initialScript: Script = {
   name: "script.tnk",
@@ -48,7 +39,10 @@ export function TextEditor({renderOptions, editorTheme} : {renderOptions: Option
   return (
     <div>
       <CodeSection/>
-      <FunctionButton id="scriptTitle" text="Send" on_click = {() => {sendScript(editorRef);}}/>
+      <FunctionButton id="scriptTitle" text="Send" on_click = {() => {
+        const input = document.getElementById('scriptTitle') as HTMLInputElement | null;
+        sendScript(editorRef.current.getValue(), input?.value);
+        }}/>
       <FunctionButton id="scriptToRun" text="Run script" on_click = {() => {execScript()}}/>
       {/* <FunctionButton id="scriptToLoad" text="Load script" on_click = {() => loadScript(setScriptState)}/> */}
     </div>
