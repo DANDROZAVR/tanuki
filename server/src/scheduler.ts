@@ -9,7 +9,7 @@ export const configureSchedule = () => {
             processed = await (getFirstFromCalendar()
                     .then(async event => {
                         if (event.datetime.getTime() <= Date.now()) {
-                            console.log(`Processing scheduled scripts "${event.id}". Date: ` + event.datetime)
+                            console.log(`Processing scheduled scripts "${event.id} script=${event.scheduleID}". Date: ` + event.datetime)
                             const schedule = await getScheduleByID(event.scheduleID)
                             const options = schedule.options
                             const script = await getScriptByID(schedule.scriptID)

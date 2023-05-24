@@ -134,8 +134,8 @@ function getRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export const createUser = async(username:string, password:string) : Promise<void> => {
-    return await new Promise((resolve) => {
+export const createUser = async(username:string, password:string) => {
+    return new Promise((resolve, reject) => {
         const salt = crypto.randomBytes(32)
         let hash:Buffer
         crypto.pbkdf2(password, salt, 1024, 64, 'sha256', async (err, derivedKey) => {
@@ -144,12 +144,12 @@ export const createUser = async(username:string, password:string) : Promise<void
                 hash = derivedKey;
                 await insertUser(username, salt.toString('hex'), hash.toString('hex')).catch(error => {
                     if (error.errno == 19) {
-                        throw new DataError("User with that name already exist")
+                        reject("User with that name already exist") // todo: why can't we throw normally?
                     } else {
-                        throw error
+                        reject(error)
                     }
                 })
-                resolve()
+                resolve('')
             }
         });
     })

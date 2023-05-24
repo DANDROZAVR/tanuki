@@ -8,8 +8,10 @@ ensureDirectoryExistence(logs_errors)
 const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
-const maxErrorsRetrying = 3
+const maxErrorsRetrying = 7
 let workersInWork : [Worker, any, number, any][] = []
+let workersWaiting : [string, any, number, any][] = []
+
 setInterval(() => {
     for (let i = workersInWork.length - 1; i >= 0; --i) {
         let toBeRemoved = false, ended = false
@@ -38,7 +40,11 @@ setInterval(() => {
         }
         if (ended) {
             if (workerOptions['callback']) {
-                if (workersInWork[i].length >= 3) {
+                console.log('well we have:')
+                console.log(workersInWork[i].length)
+                console.log(workersInWork[i][3])
+                console.log(workerOptions.workerData.lastRunFeedback)
+                if (workersInWork[i].length >= 3 && workersInWork[i][3] !== undefined) {
                     workerOptions.callback(workersInWork[i][3])
                 } else {
                     workerOptions.callback(workerOptions.workerData.lastRunFeedback)
@@ -49,6 +55,16 @@ setInterval(() => {
         if (toBeRemoved) {
             workersInWork.splice(i, 1);
         }
+    }
+    if (workersInWork.length <= 0 && workersWaiting.length) { // change
+        const workerInfo = workersWaiting[0]
+        workersWaiting.splice(0, 1)
+        console.log(workersWaiting.length)
+        // some problems wih adding workers?
+        const worker = new Worker(workerInfo[0], workerInfo[1])
+        console.log("worker created for task: " + workerInfo[1].workerData.script.titl)
+        workersInWork.push([worker, workerInfo[1], workerInfo[2], workerInfo[3]])
+        enableLogs(worker)
     }
 }, 1000)
 // TODO: make interfaces for each call in database like WorkerOptions
@@ -62,16 +78,13 @@ export const runWorker = (workerOptions: any) : Promise<any> => {
     })
 }
 
-export const createWorker = (workerOptions: any, callback: any = undefined, exitCode: number = 0) : Worker => {
+export const createWorker = (workerOptions: any, callback: any = undefined, exitCode: number = 0)  => {
     if (callback != undefined) {
         workerOptions['callback'] = callback
     }
     const workerPath = './build/worker.js'
-    const worker = new Worker(workerPath, workerOptions)
-    enableLogs(worker)
-    workersInWork.push([worker, workerOptions, exitCode, undefined])
+    workersWaiting.push([workerPath, workerOptions, exitCode, undefined])
     console.log('added task "' + workerOptions.workerData.script.title + '"')
-    return worker
 }
 
 const findWorker = (worker: Worker) : number => {
