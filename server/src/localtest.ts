@@ -6,21 +6,38 @@ import {
     getScriptByName,
     getScriptByUserID, updateScheduleOptionsByID
 } from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule, createUser, authenticateUser} from "./parser";
+import {
+    parseExecute,
+    parseInsert,
+    parseSchedule,
+    createUser,
+    parseCreateUser,
+    authenticateUser,
+    parseDelete
+} from "./parser";
 import {configureSchedule} from "./scheduler";
+import {deleteFromPath} from "./helpers/scriptsDymDeleting";
 
 const main = async () => {
     createDB()
     configureSchedule()
-    //await createUser("admin", "admin")
-    await authenticateUser("admin", "adamin").then(correct => {
-        console.log(correct)
-        if(correct){
-            console.log("correct password")
-        } else {
-            console.log("incorrect password")
-        }
+
+    //deleteFromPath("scripts/admin/skrypt1-compiled.js")
+    parseDelete({
+        user: "admin",
+        password: "admin",
+        title: "skrypt1"
     })
+    /*parseCreateUser({
+        username: "admin4",
+        password: "trudnehaslo"
+    }).then(_ => parseInsert({
+        user: "admin4",
+        title: "skrypcik",
+        source: "exit(0)"
+    }))*/
+
+
     console.log('next')
 
     //await insertUser('admin')

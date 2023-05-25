@@ -43,8 +43,11 @@ export function TextEditor({renderOptions, editorTheme} : {renderOptions: Option
         const input = document.getElementById('scriptTitle') as HTMLInputElement | null;
         sendScript(editorRef.current.getValue(), input?.value);
         }}/>
-      <FunctionButton id="scriptToRun" text="Run script" on_click = {() => {execScript()}}/>
-      {/* <FunctionButton id="scriptToLoad" text="Load script" on_click = {() => loadScript(setScriptState)}/> */}
+      <FunctionButton id="scriptToRun" text="Run script" on_click = {() => {
+        const input = document.getElementById('scriptToRun') as HTMLInputElement | null;
+        execScript(input?.value);
+      }}/>
+      {/*<FunctionButton id="scriptToLoad" text="Load script" on_click = {() => loadScript(setScriptState)}/>*/}
     </div>
   );
 }

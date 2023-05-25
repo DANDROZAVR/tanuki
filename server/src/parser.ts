@@ -1,4 +1,5 @@
 import {
+    deleteScriptByName,
     getScriptByName,
     getUserByName,
     insertIntoCalendar,
@@ -6,11 +7,12 @@ import {
     insertScriptByName,
     insertUser,
     Script,
-    updateScheduleOptionsByID
+    updateScheduleOptionsByID, updateScriptByName
 } from "./sql/database";
 import {saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
 import * as crypto from "crypto"
+import {deleteFromPath} from "./helpers/scriptsDymDeleting";
 
 /**
  *
@@ -35,6 +37,7 @@ const checkContainsTags = (bodyJson: any, tags: string[]) : boolean => {
 }
 
 export const parseInsert = async (bodyJson: any) : Promise<void> => {
+    await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'title', 'source']))
         throw new DataError('not a valid insert request')
     const title = bodyJson.title
@@ -45,14 +48,54 @@ export const parseInsert = async (bodyJson: any) : Promise<void> => {
         .then(_ => saveJSToPath(path, source))
         .catch(error =>{
             if(error.errno == 19){
-                throw new DataError("Sript with that name already exist")
+                throw new DataError("Script with that name already exist")
             }else{
                 throw error
             }
         })
 }
 
+export const parseUpdate = async (bodyJson: any) : Promise<void> => {
+    await parseAuthenticate(bodyJson)
+    if (!checkContainsTags(bodyJson, ['user', 'title', 'source']))
+        throw new DataError('not a valid update request')
+    const title = bodyJson.title
+    const user = bodyJson.user
+    const script : Script = await getScriptByName(title, user)
+    if(script === undefined){
+        throw new DataError("Script with that name does not exist")
+    }
+    const path = script.path
+    const source = bodyJson.source
+    await updateScriptByName(title, source, user, bodyJson.pureJsCode ?? false)
+        .then(_ => saveJSToPath(path, source))
+        .catch(error =>{
+            console.log(error)
+                throw error
+        })
+}
+
+export const parseDelete = async (bodyJson: any) : Promise<void> => {
+    await parseAuthenticate(bodyJson)
+    if (!checkContainsTags(bodyJson, ['user', 'title']))
+        throw new DataError('not a valid delete request')
+    const title = bodyJson.title
+    const user = bodyJson.user
+    const script : Script = await getScriptByName(title, user)
+    if(script === undefined){
+        throw new DataError("Script with that name does not exist")
+    }
+    const path = script.path
+    await deleteScriptByName(title, user)
+        .then(_ => deleteFromPath(path))
+        .catch(error =>{
+            console.log(error)
+            throw error
+        })
+}
+
 export const parseExecute = async (bodyJson: any) : Promise<void> => {
+    await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'title']))
         throw new DataError('not a valid execute request')
     const script : any = (await getScriptByName(bodyJson.title, bodyJson.user))
@@ -68,6 +111,7 @@ export const parseExecute = async (bodyJson: any) : Promise<void> => {
 }
 
 export const parseLoad = async (bodyJson: any) : Promise<Script> => {
+    await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'title']))
         throw new DataError('not a valid load request')
     const script : Script = (await getScriptByName(bodyJson.title, bodyJson.user))
@@ -78,6 +122,7 @@ export const parseLoad = async (bodyJson: any) : Promise<Script> => {
 }
 
 export const parseSchedule = async (bodyJson: any) : Promise<Date> => {
+    await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'title', 'scheduleOptions']))
         throw new DataError('not a valid schedule request')
     const options = bodyJson.scheduleOptions
@@ -130,12 +175,21 @@ export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
     await createUser(username, password)
 }
 
+export const parseAuthenticate = async (bodyJson: any) : Promise<void> => {
+    if (!checkContainsTags(bodyJson, ['user', 'password']))
+        throw new DataError('request is lacking credentials')
+    const username = bodyJson.user
+    const password = bodyJson.password
+    if(!await authenticateUser(username, password))
+        throw new DataError('incorrect password')
+}
+
 function getRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export const createUser = async(username:string, password:string) => {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         const salt = crypto.randomBytes(32)
         let hash:Buffer
         crypto.pbkdf2(password, salt, 1024, 64, 'sha256', async (err, derivedKey) => {
@@ -144,12 +198,12 @@ export const createUser = async(username:string, password:string) => {
                 hash = derivedKey;
                 await insertUser(username, salt.toString('hex'), hash.toString('hex')).catch(error => {
                     if (error.errno == 19) {
-                        reject("User with that name already exist") // todo: why can't we throw normally?
+                        reject("User with that name already exist")
                     } else {
                         reject(error)
                     }
                 })
-                resolve('')
+                resolve()
             }
         });
     })
@@ -165,8 +219,6 @@ export const authenticateUser = async(username:string, password:string) : Promis
             if (err) throw new DataError('error encrypting users password');
             else {
                 hash = derivedKey;
-                console.log(hash.toString("hex"))
-                console.log(user.hash)
                 resolve(hash.toString("hex") == user.hash)
             }
         });

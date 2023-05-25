@@ -10,8 +10,8 @@ export async function sendScript(script: string, scriptName:string) { // TODO: t
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-      // TODO: if response.status = 'error' make alert appear accordingly
-      // eslint-disable-next-line no-alert
+      // TODO: if response.status !=0 make alert appear accordingly
+
       alert(response.message);
     }
   };
@@ -20,6 +20,7 @@ export async function sendScript(script: string, scriptName:string) { // TODO: t
     JSON.stringify({
       type: 'insertScript',
       user: 'admin',
+      password: 'admin',
       title: scriptName,
       source: script,
     })
@@ -28,21 +29,71 @@ export async function sendScript(script: string, scriptName:string) { // TODO: t
   return scriptName;
 }
 
-export async function execScript() { // TODO: this should take string as argument
-  const input = document.getElementById(
-    'scriptToRun'
-  ) as HTMLInputElement | null;
-  const scriptName = input?.value;
-
+export async function updateScript(script: string, scriptName:string) { // TODO: tris should take name as argument
   /* establish http connection */
   const request = new XMLHttpRequest();
-  // TODO: custom server address
   const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-      // eslint-disable-next-line no-alert
+
+      alert(response.message);
+    }
+  };
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'updateScript',
+      user: 'admin',
+      password: 'admin',
+      title: scriptName,
+      source: script,
+    })
+  );
+
+  return scriptName;
+}
+
+export async function sendOrUpdate(script: string, scriptName:string) { // TODO: tris should take name as argument
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  const url = 'http://localhost:3001';
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = JSON.parse(request.response);
+
+      if(response.status == 1 && response.message =="Script with that name already exist"){
+        updateScript(script, scriptName)
+      } else {
+        alert(response.message);
+      }
+    }
+  };
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'insertScript',
+      user: 'admin',
+      password: 'admin',
+      title: scriptName,
+      source: script,
+    })
+  );
+
+  return scriptName;
+}
+
+export async function execScript(scriptName: string) { // TODO: this should take string as argument
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  const url = 'http://localhost:3001';
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = JSON.parse(request.response);
+
       alert(response.message);
     }
   };
@@ -51,28 +102,24 @@ export async function execScript() { // TODO: this should take string as argumen
     JSON.stringify({
       type: 'execScript',
       user: 'admin',
+      password: 'admin',
       title: scriptName,
     })
   );
 }
 
 export async function loadScript(
+  scriptName: string,
   setScriptState: React.Dispatch<React.SetStateAction>
 ) {
-  const input = document.getElementById(
-    'scriptToLoad'
-  ) as HTMLInputElement | null;
-  const scriptName = input?.value;
-
   /* establish http connection */
   const request = new XMLHttpRequest();
-  // TODO: custom server address
   const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-      // eslint-disable-next-line no-alert
+
       alert(response.message);
       setScriptState({
         name: scriptName,
@@ -86,7 +133,78 @@ export async function loadScript(
     JSON.stringify({
       type: 'loadScript',
       user: 'admin',
+      password: 'admin',
       title: scriptName,
+    })
+  );
+}
+
+export async function deleteScript(scriptName: string) {
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  const url = 'http://localhost:3001';
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = JSON.parse(request.response);
+
+      alert(response.message);
+    }
+  };
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'deleteScript',
+      user: 'admin',
+      password: 'admin',
+      title: scriptName,
+    })
+  );
+}
+
+export async function createUser(userName: string, password:string) {
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  const url = 'http://localhost:3001';
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = JSON.parse(request.response);
+
+      alert(response.message);
+    }
+  };
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'createUser',
+      username: userName,
+      password: password
+    })
+  );
+}
+
+export async function signIn(userName: string, password:string) {
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  const url = 'http://localhost:3001';
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = JSON.parse(request.response);
+      if(response.status==0){
+        //username and password is correct
+      }
+
+      alert(response.message);
+    }
+  }
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'signIn',
+      username: userName,
+      password: password
     })
   );
 }

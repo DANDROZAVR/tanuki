@@ -1,6 +1,14 @@
 import http = require('http');
 import {createDB} from "./sql/database";
-import {parseExecute, parseInsert, parseSchedule, parseLoad, parseCreateUser} from "./parser";
+import {
+    parseExecute,
+    parseInsert,
+    parseSchedule,
+    parseLoad,
+    parseCreateUser,
+    parseUpdate,
+    parseAuthenticate
+} from "./parser";
 import {configureSchedule} from "./scheduler";
 
 createDB();
@@ -70,12 +78,42 @@ const server = http.createServer((req, res) => {
                     parseInsert(bodyJSON)
                         .then(_ => {
                             response = JSON.stringify({
-                                status:'ok',
+                                status:0,
                                 message: `Saved script ${bodyJSON.title}`
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
-                            status:'error',
+                            status:1,
+                            message:error.message
+                        })
+                    }).then( _=> {
+                        res.end(response)
+                    })
+                } else if (bodyJSON.type == 'updateScript') {
+                    parseUpdate(bodyJSON)
+                        .then(_ => {
+                            response = JSON.stringify({
+                                status:0,
+                                message: `Saved script ${bodyJSON.title}`
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:1,
+                            message:error.message
+                        })
+                    }).then( _=> {
+                        res.end(response)
+                    })
+                }else if (bodyJSON.type == 'deleteScript') {
+                    parseUpdate(bodyJSON)
+                        .then(_ => {
+                            response = JSON.stringify({
+                                status:0,
+                                message: `Deleted script ${bodyJSON.title}`
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:1,
                             message:error.message
                         })
                     }).then( _=> {
@@ -85,12 +123,12 @@ const server = http.createServer((req, res) => {
                     parseExecute(bodyJSON)
                         .then(_ => {
                             response = JSON.stringify({
-                                status:'ok',
+                                status:0,
                                 message: `Running script ${bodyJSON.title}`
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
-                            status:'error',
+                            status:1,
                             message:error.message
                         })
                     }).then( _=> {
@@ -100,12 +138,12 @@ const server = http.createServer((req, res) => {
                     parseSchedule(bodyJSON)
                         .then(result => {
                                 response = JSON.stringify({
-                                    status:'ok',
+                                    status:0,
                                     message: `Scheduled on ${result}`
                                 })
                         }).catch((error: any) => {
                         response = JSON.stringify({
-                            status:'error',
+                            status:1,
                             message:error.message
                         })
                     }).then( _=> {
@@ -115,13 +153,13 @@ const server = http.createServer((req, res) => {
                     parseLoad(bodyJSON)
                         .then((script: any) => {
                             response = JSON.stringify({
-                                status:'ok',
+                                status:0,
                                 message: `Loaded script ${script.title} succesfully`,
                                 source: script.source
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
-                            status:'error',
+                            status:1,
                             message:error.message
                         })
                     }).then((_: any)=> {
@@ -131,12 +169,28 @@ const server = http.createServer((req, res) => {
                     parseCreateUser(bodyJSON)
                         .then(_ => {
                             response = JSON.stringify({
-                                status:'ok',
+                                status:0,
                                 message: `Created new user ${bodyJSON.username} succesfully`,
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
-                            status:'error',
+                            status:1,
+                            message:error.message
+                        })
+                    }).then((_: any)=> {
+                        res.end(response)
+                    })
+                }
+                else if (bodyJSON.type == 'signIn') {
+                    parseAuthenticate(bodyJSON)
+                        .then(_ => {
+                            response = JSON.stringify({
+                                status:0,
+                                message: `Logged in succesfully`,
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:1,
                             message:error.message
                         })
                     }).then((_: any)=> {

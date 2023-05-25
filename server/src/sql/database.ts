@@ -11,7 +11,7 @@ export interface Script {
     id: number;
     title: string;
     source: string;
-    path: string | null;
+    path: string;
     pureJScode: boolean;
     user: User['id'];
 }
@@ -79,6 +79,54 @@ export function insertScriptByID(title: string, description: string, source: str
         } catch (err) {
             // TODO: make research. probably exceptions there don't work
             console.error("Error inserting script:", err);
+            return false;
+        }
+    })
+}
+
+export function updateScriptByName(title: string, source: string, userName: string, pureJSCode: boolean) : Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        getUserByName(userName)
+            .then(async user => resolve(await updateScriptByID(title, "", source, user.id, pureJSCode)))
+            .catch(error => reject(error))
+    })
+}
+
+export function updateScriptByID(title: string, description: string, source: string, userID: number, pureJSCode: boolean): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+        const update = db.prepare("UPDATE scripts SET source = ?, description =?, pureJsCode =? WHERE user = ? AND title = ?")
+        try {
+            update.run([source, description, pureJSCode, userID, title], (error) => {
+                if (error == null)
+                    resolve(true); else
+                    reject(error)
+            });
+        } catch (err) {
+            console.error("Error updating script:", err);
+            return false;
+        }
+    })
+}
+
+export function deleteScriptByName(title: string, userName: string) : Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        getUserByName(userName)
+            .then(async user => resolve(await deleteScriptByID(title, user.id)))
+            .catch(error => reject(error))
+    })
+}
+
+export function deleteScriptByID(title: string, userID: number): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+        const update = db.prepare("DELETE FROM scripts WHERE user = ? AND title = ?")
+        try {
+            update.run([userID, title], (error) => {
+                if (error == null)
+                    resolve(true); else
+                    reject(error)
+            });
+        } catch (err) {
+            console.error("Error deleting script:", err);
             return false;
         }
     })
