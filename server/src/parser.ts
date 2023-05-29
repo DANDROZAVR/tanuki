@@ -176,9 +176,9 @@ export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
 }
 
 export const parseAuthenticate = async (bodyJson: any) : Promise<void> => {
-    if (!checkContainsTags(bodyJson, ['user', 'password']))
+    if (!checkContainsTags(bodyJson, ['username', 'password']))
         throw new DataError('request is lacking credentials')
-    const username = bodyJson.user
+    const username = bodyJson.username
     const password = bodyJson.password
     if(!await authenticateUser(username, password))
         throw new DataError('incorrect password')

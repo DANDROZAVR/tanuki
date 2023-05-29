@@ -95,7 +95,7 @@ const createWindow = async () => {
 
   mainWindow.maximize();
 
-  mainWindow.loadURL(resolveHtmlPath('index.html'));
+  mainWindow.loadURL(resolveHtmlPath(''));
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {

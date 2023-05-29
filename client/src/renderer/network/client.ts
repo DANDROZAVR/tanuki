@@ -1,11 +1,12 @@
 import React from 'react';
 import FileState from './fileState.ts';
 
-export async function sendScript(script: string, scriptName:string) { // TODO: tris should take name as argument
+const url = 'http://localhost:3001';
+
+export async function sendScript(script: string, scriptName: string) {
+  // TODO: tris should take name as argument
   /* establish http connection */
   const request = new XMLHttpRequest();
-  // TODO: custom server address
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
@@ -29,10 +30,10 @@ export async function sendScript(script: string, scriptName:string) { // TODO: t
   return scriptName;
 }
 
-export async function updateScript(script: string, scriptName:string) { // TODO: tris should take name as argument
+export async function updateScript(script: string, scriptName: string) {
+  // TODO: tris should take name as argument
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
@@ -55,17 +56,20 @@ export async function updateScript(script: string, scriptName:string) { // TODO:
   return scriptName;
 }
 
-export async function sendOrUpdate(script: string, scriptName:string) { // TODO: tris should take name as argument
+export async function sendOrUpdate(script: string, scriptName: string) {
+  // TODO: tris should take name as argument
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
 
-      if(response.status == 1 && response.message =="Script with that name already exist"){
-        updateScript(script, scriptName)
+      if (
+        response.status === 1 &&
+        response.message === 'Script with that name already exist'
+      ) {
+        updateScript(script, scriptName);
       } else {
         alert(response.message);
       }
@@ -85,10 +89,10 @@ export async function sendOrUpdate(script: string, scriptName:string) { // TODO:
   return scriptName;
 }
 
-export async function execScript(scriptName: string) { // TODO: this should take string as argument
+export async function execScript(scriptName: string) {
+  // TODO: this should take string as argument
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
@@ -108,24 +112,19 @@ export async function execScript(scriptName: string) { // TODO: this should take
   );
 }
 
-export async function loadScript(
-  scriptName: string,
-  setScriptState: React.Dispatch<React.SetStateAction>
-) {
+export async function loadScript(scriptName: string, callback) {
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-
-      alert(response.message);
-      setScriptState({
+      const scriptState = {
         name: scriptName,
         value: response.source,
         defaultLanguage: 'typescript',
-      } as FileState);
+      } as FileState;
+      callback(scriptState);
     }
   };
   request.setRequestHeader('Content-type', 'application/json');
@@ -142,7 +141,6 @@ export async function loadScript(
 export async function deleteScript(scriptName: string) {
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
@@ -162,49 +160,42 @@ export async function deleteScript(scriptName: string) {
   );
 }
 
-export async function createUser(userName: string, password:string) {
+export async function createUser(username: string, password: string, callback) {
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-
-      alert(response.message);
+      callback(response);
     }
   };
   request.setRequestHeader('Content-type', 'application/json');
   request.send(
     JSON.stringify({
       type: 'createUser',
-      username: userName,
-      password: password
+      username,
+      password,
     })
   );
 }
 
-export async function signIn(userName: string, password:string) {
+export async function logIn(username: string, password: string, callback) {
   /* establish http connection */
   const request = new XMLHttpRequest();
-  const url = 'http://localhost:3001';
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-      if(response.status==0){
-        //username and password is correct
-      }
-
-      alert(response.message);
+      callback(response);
     }
-  }
+  };
   request.setRequestHeader('Content-type', 'application/json');
   request.send(
     JSON.stringify({
       type: 'signIn',
-      username: userName,
-      password: password
+      username,
+      password,
     })
   );
 }

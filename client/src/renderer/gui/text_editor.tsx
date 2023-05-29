@@ -14,10 +14,12 @@ const initialScript: Script = {
 };
 
 
-export function TextEditor({renderOptions, editorTheme} : {renderOptions: Options, editorTheme: string } ) {
+export function TextEditor({renderOptions, editorTheme, scriptState} : {renderOptions: Options, editorTheme: string } ) {
+  console.log(scriptState.scriptName);
   const editorRef = React.useRef<string>(null);
   // eslint-disable-next-line no-unused-vars
   function onEditorMount(editor, monaco) {
+    console.log(editorRef.value)
     editorRef.current = editor;
   }
 
@@ -47,7 +49,6 @@ export function TextEditor({renderOptions, editorTheme} : {renderOptions: Option
         const input = document.getElementById('scriptToRun') as HTMLInputElement | null;
         execScript(input?.value);
       }}/>
-      {/*<FunctionButton id="scriptToLoad" text="Load script" on_click = {() => loadScript(setScriptState)}/>*/}
     </div>
   );
 }
