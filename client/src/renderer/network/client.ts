@@ -174,7 +174,7 @@ export async function createUser(username: string, password: string, callback) {
   request.send(
     JSON.stringify({
       type: 'createUser',
-      username,
+      user: username,
       password,
     })
   );
@@ -194,7 +194,7 @@ export async function logIn(username: string, password: string, callback) {
   request.send(
     JSON.stringify({
       type: 'signIn',
-      username,
+      user: username,
       password,
     })
   );

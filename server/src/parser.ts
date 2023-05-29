@@ -168,17 +168,17 @@ export const addToCalendar = async (script: any, options: any, firstTime: boolea
 }
 
 export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
-    if (!checkContainsTags(bodyJson, ['username', 'password']))
+    if (!checkContainsTags(bodyJson, ['user', 'password']))
         throw new DataError('not a valid create user request')
-    const username = bodyJson.username
+    const username = bodyJson.user
     const password = bodyJson.password
     await createUser(username, password)
 }
 
 export const parseAuthenticate = async (bodyJson: any) : Promise<void> => {
-    if (!checkContainsTags(bodyJson, ['username', 'password']))
+    if (!checkContainsTags(bodyJson, ['user', 'password']))
         throw new DataError('request is lacking credentials')
-    const username = bodyJson.username
+    const username = bodyJson.user
     const password = bodyJson.password
     if(!await authenticateUser(username, password))
         throw new DataError('incorrect password')
