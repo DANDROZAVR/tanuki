@@ -6,21 +6,22 @@ CREATE TABLE IF NOT EXISTS users (
     hash VARCHAR(128)
 );
 
-CREATE TABLE IF NOT EXISTS scripts (
+CREATE TABLE IF NOT EXISTS paths (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path VARCHAR(200) NOT NULL,
     title VARCHAR(200) NOT NULL,
     description VARCHAR(200) NOT NULL,
-    source TEXT NOT NULL,
-    path VARCHAR(200),
+    parent INTEGER REFERENCES paths,
+    isDirectory BOOLEAN,
     pureJsCode BOOLEAN,
     user INTEGER REFERENCES users,
-    UNIQUE(title, user)
+    UNIQUE(path, user)
 );
 
 CREATE TABLE IF NOT EXISTS schedule (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     options JSON, -- information about how often smth should be executed
-    scriptID INTEGER REFERENCES scripts
+    scriptID INTEGER REFERENCES paths
 );
 
 CREATE TABLE IF NOT EXISTS calendar (

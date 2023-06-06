@@ -8,7 +8,7 @@ ensureDirectoryExistence(logs_errors)
 const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
-const maxErrorsRetrying = 7
+const maxErrorsRetrying = 3
 let workersInWork : [Worker, any, number, any][] = []
 let workersWaiting : [string, any, number, any][] = []
 

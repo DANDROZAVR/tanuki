@@ -20,7 +20,7 @@ export function ScriptManagerScreen() {
   function goToPlayground() {
     navigate('/playground');
   }
-  function log_out() {
+  function onLogOut() {
     logOut()
     navigate('/login');
   }
@@ -29,7 +29,7 @@ export function ScriptManagerScreen() {
       <section className="form-section">
         <RequestFieldAndButton
           id="loadScript"
-          placeholder="script.tnk"
+          placeholder="script"
           buttonText="Load script"
           callback={(str) => onLoadScript(str)}
         />
@@ -38,7 +38,7 @@ export function ScriptManagerScreen() {
         Go to playground
       </button>
       <span className="red">{errorMessage}</span>
-      <button type="button" onClick={log_out}>
+      <button type="button" onClick={onLogOut}>
         Log Out
       </button>
     </div>

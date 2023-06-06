@@ -1,1 +1,0 @@
-niedzialajacy skrypt lol

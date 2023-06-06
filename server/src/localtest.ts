@@ -1,10 +1,8 @@
 import {
     createDB,
-    getFirstFromCalendar,
+    getFirstFromCalendar, getPathByParent,
     insertUser,
-    insertScriptByName,
-    getScriptByName,
-    getScriptByUserID, updateScheduleOptionsByID
+    updateScheduleOptionsByID
 } from "./sql/database";
 import {
     parseExecute,
@@ -13,7 +11,7 @@ import {
     createUser,
     parseCreateUser,
     authenticateUser,
-    parseDelete
+    parseDelete, parseUpdate, parseLoadScript, parseCreateDirectory, parseLoadDirectory, parseLoadHomeDirectory
 } from "./parser";
 import {configureSchedule} from "./scheduler";
 import {deleteFromPath} from "./helpers/scriptsDymDeleting";
@@ -23,19 +21,23 @@ const main = async () => {
     configureSchedule()
 
     //deleteFromPath("scripts/admin/skrypt1-compiled.js")
-    parseDelete({
-        user: "admin",
-        password: "admin",
-        title: "skrypt1"
-    })
-    /*parseCreateUser({
-        username: "admin4",
-        password: "trudnehaslo"
-    }).then(_ => parseInsert({
-        user: "admin4",
-        title: "skrypcik",
-        source: "exit(0)"
-    }))*/
+    /*parseInsert({
+        user: "admin2",
+        password: "admin2",
+        title: "anything",
+        source: "do something",
+        description: "any",
+        currentDir: "admin2/"
+    })*/
+
+
+    console.log(await parseLoadHomeDirectory({
+        user: "admin2",
+        password: "admin2",
+        path: "admin2/subdir/"
+    }))
+
+
 
 
     console.log('next')

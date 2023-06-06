@@ -15,7 +15,7 @@ const initialScript: Script = {
 
 
 export function TextEditor({renderOptions, editorTheme, scriptState} : {renderOptions: Options, editorTheme: string } ) {
-  console.log(scriptState.scriptName);
+  //console.log(scriptState.scriptName);
   const editorRef = React.useRef<string>(null);
   // eslint-disable-next-line no-unused-vars
   function onEditorMount(editor, monaco) {

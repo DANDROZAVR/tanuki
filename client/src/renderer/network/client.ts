@@ -122,12 +122,16 @@ export async function loadScript(scriptName: string, callback) {
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-      const scriptState = {
-        name: scriptName,
-        value: response.source,
-        defaultLanguage: 'typescript',
-      } as FileState;
-      callback(scriptState);
+      if(response.status==0) {
+        const scriptState = {
+          scriptName,
+          value: response.source,
+          defaultLanguage: 'typescript',
+        } as FileState;
+        callback(scriptState);
+      } else {
+        alert(response.message)
+      }
     }
   };
   request.setRequestHeader('Content-type', 'application/json');

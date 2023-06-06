@@ -4,7 +4,7 @@ import {
     parseExecute,
     parseInsert,
     parseSchedule,
-    parseLoad,
+    parseLoadScript,
     parseCreateUser,
     parseUpdate,
     parseAuthenticate
@@ -150,10 +150,10 @@ const server = http.createServer((req, res) => {
                         res.end(response)
                     })
                 } else if (bodyJSON.type == 'loadScript') {
-                    parseLoad(bodyJSON)
+                    parseLoadScript(bodyJSON)
                         .then((script: any) => {
                             response = JSON.stringify({
-                                status:0,
+                                status: 0,
                                 message: `Loaded script ${script.title} succesfully`,
                                 source: script.source
                             })

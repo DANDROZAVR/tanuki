@@ -7,19 +7,27 @@ export interface User {
     hash: string;
 }
 
-export interface Script {
+export interface Path {
     id: number;
-    title: string;
-    source: string;
     path: string;
+    title: string;
+    description: string;
+    parent: Path['id'];
+    isDirectory: boolean;
     pureJScode: boolean;
     user: User['id'];
+}
+
+export interface dirInfo{
+    name: string,
+    description: string,
+    isDirectory: boolean
 }
 
 interface Schedule {
     id: number;
     options: ScheduleOptions,
-    scriptID: Script['id'],
+    scriptID: Path['id'],
 }
 
 
@@ -53,25 +61,34 @@ interface Calendar {
 }
 
 
-const db = new Database('temp2.db');
+const db = new Database('tanuki.db');
 
 export function createDB(): void {
     db.exec(fs.readFileSync('src/sql/create.sql').toString());
 }
 
-export function insertScriptByName(title: string, source: string, userName: string, path: string, pureJSCode: boolean) : Promise<boolean> {
+export function insertPathByName(title: string, description: string, userName: string, parent: string, isDir: boolean, pureJSCode: boolean) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserByName(userName)
-            .then(async user => resolve(await insertScriptByID(title, "", source, user.id, path, pureJSCode)))
+            .then(async user => resolve(await insertPathByID(title, description, user.id, parent, isDir, pureJSCode)))
             .catch(error => reject(error))
     })
 }
 
-export function insertScriptByID(title: string, description: string, source: string, userID: number, path: string, pureJSCode: boolean): Promise<boolean> {
+export function insertPathByID(title: string, description: string, userID: number, parent: string, isDir: boolean, pureJSCode: boolean): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT INTO scripts (title, description, source, user, path, pureJsCode) VALUES (?, ?, ?, ?, ?, ?)")
+        var path = parent + title
+        if(isDir){
+            path += '/'
+        }
+        var parentDir = await getPathByUserID(parent, userID)
+        var parentID = -1
+        if(parentDir!=undefined){
+            parentID = parentDir.id
+        }
+        const insert = db.prepare("INSERT INTO paths (title, description, user, path, parent, isDirectory, pureJsCode) VALUES (?, ?, ?, ?, ?, ?, ?)")
         try {
-            insert.run([title, description, source, userID, path, pureJSCode], (error) => {
+            insert.run([title, description, userID, path, parentID, isDir, pureJSCode], (error) => {
                 if (error == null)
                     resolve(true); else
                     reject(error)
@@ -84,19 +101,19 @@ export function insertScriptByID(title: string, description: string, source: str
     })
 }
 
-export function updateScriptByName(title: string, source: string, userName: string, pureJSCode: boolean) : Promise<boolean> {
+export function updatePathByName(description: string, path: string, userName: string) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserByName(userName)
-            .then(async user => resolve(await updateScriptByID(title, "", source, user.id, pureJSCode)))
+            .then(async user => resolve(await updatePathByID(description, path, user.id)))
             .catch(error => reject(error))
     })
 }
 
-export function updateScriptByID(title: string, description: string, source: string, userID: number, pureJSCode: boolean): Promise<boolean> {
+export function updatePathByID(description: string, path: string, userID: number): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const update = db.prepare("UPDATE scripts SET source = ?, description =?, pureJsCode =? WHERE user = ? AND title = ?")
+        const update = db.prepare("UPDATE paths SET description =? WHERE user = ? AND path = ?")
         try {
-            update.run([source, description, pureJSCode, userID, title], (error) => {
+            update.run([description, userID, path], (error) => {
                 if (error == null)
                     resolve(true); else
                     reject(error)
@@ -108,19 +125,19 @@ export function updateScriptByID(title: string, description: string, source: str
     })
 }
 
-export function deleteScriptByName(title: string, userName: string) : Promise<boolean> {
+export function deletePathByName(path: string, userName: string) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserByName(userName)
-            .then(async user => resolve(await deleteScriptByID(title, user.id)))
+            .then(async user => resolve(await deletePathByID(path, user.id)))
             .catch(error => reject(error))
     })
 }
 
-export function deleteScriptByID(title: string, userID: number): Promise<boolean> {
+export function deletePathByID(path: string, userID: number): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const update = db.prepare("DELETE FROM scripts WHERE user = ? AND title = ?")
+        const update = db.prepare("DELETE FROM paths WHERE user = ? AND path = ?")
         try {
-            update.run([userID, title], (error) => {
+            update.run([userID, path], (error) => {
                 if (error == null)
                     resolve(true); else
                     reject(error)
@@ -216,35 +233,35 @@ export function updateScheduleOptionsByID(scheduleID: number, options: any): Pro
     })
 }
 
-export function getScriptByName(title: string, userName: string): Promise<Script> {
+export function getPathByName(path: string, userName: string): Promise<Path> {
     return new Promise((resolve, reject) => {
         getUserByName(userName)
-            .then(async user => resolve(await getScriptByUserID(title, user.id)))
+            .then(async user => resolve(await getPathByUserID(path, user.id)))
             .catch(error => reject(error))
     })
 }
 
 
-export function getScriptByUserID(title: string, user: number): Promise<Script> {
+export function getPathByUserID(path: string, user: number): Promise<Path> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT * FROM scripts WHERE scripts.title = ? AND scripts.user = ?"
+            "SELECT * FROM paths WHERE paths.path = ? AND paths.user = ?"
         );
-        select.get([title, user], (err, row) => {
+        select.get([path, user], (err, row) => {
             if (err) {
                 reject(err);
             } else {
                 // @ts-ignore
-                resolve(row as Script);
+                resolve(row as Path);
             }
         });
     });
 }
 
-export function getScriptByID(scriptID: number): Promise<Script> {
+export function getPathByID(scriptID: number): Promise<Path> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
-            "SELECT * FROM scripts WHERE scripts.id = ?"
+            "SELECT * FROM paths WHERE paths.id = ?"
         );
         select.get([scriptID], (err, row) => {
             if (err)
@@ -254,6 +271,24 @@ export function getScriptByID(scriptID: number): Promise<Script> {
                 { // @ts-ignore
                     resolve(row);
                 }
+        });
+    });
+}
+
+export function getPathByParent(parentID: number): Promise<dirInfo[]> {
+    return new Promise((resolve, reject) => {
+        const select = db.prepare(
+            "SELECT title, description, isDirectory FROM paths WHERE paths.parent = ?"
+        );
+        select.all([parentID], (err, rows) => {
+            if (err)
+                reject(err); else
+            if (rows === undefined)
+                reject(`There's no directory with id ${parentID}`); else
+            {
+                // @ts-ignore
+                resolve(rows);
+            }
         });
     });
 }
@@ -315,7 +350,7 @@ export function getFirstFromCalendar(): Promise<Calendar> {
             if (err)
                 reject(err); else
             if (row === undefined)
-                reject("There's no scripts are in calendar");
+                reject("There are no scripts in the calendar");
             else {
                 const calendar: Calendar = row as Calendar
                 calendar.datetime = new Date(calendar.datetime)

@@ -8,6 +8,11 @@ export function ensureDirectoryExistence(filePath : string) {
     ensureDirectoryExistence(dirname);
     fs.mkdirSync(dirname);
 }
+
+export function makeDirectory(path : string) {
+    ensureDirectoryExistence(path);
+    fs.mkdirSync(path);
+}
 export const saveJSToPath = (path: string, code: string) : Promise<boolean> => {
     return new Promise((resolve, reject) => {
         fs.unlink(path, () => {

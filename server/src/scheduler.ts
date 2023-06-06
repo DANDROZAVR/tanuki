@@ -1,4 +1,4 @@
-import {getFirstFromCalendar, getScheduleByID, getScriptByID, removeFromCalendar} from "./sql/database";
+import {getFirstFromCalendar, getScheduleByID, getPathByID, removeFromCalendar} from "./sql/database";
 import {runWorker} from "./workersManager";
 import {addToCalendar} from "./parser";
 
@@ -12,7 +12,7 @@ export const configureSchedule = () => {
                             console.log(`Processing scheduled scripts "${event.id} script=${event.scheduleID}". Date: ` + event.datetime)
                             const schedule = await getScheduleByID(event.scheduleID)
                             const options = schedule.options
-                            const script = await getScriptByID(schedule.scriptID)
+                            const script = await getPathByID(schedule.scriptID)
                             await removeFromCalendar(event.id)
                             const feedback = await runWorker({
                                 workerData: {
