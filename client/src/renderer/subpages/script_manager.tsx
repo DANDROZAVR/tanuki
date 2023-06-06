@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { RequestFieldAndButton } from '../gui/util';
-import { loadScript } from '../network/client';
+import { loadScript, logOut } from '../network/client';
 
 export function ScriptManagerScreen() {
   const navigate = useNavigate();
@@ -20,7 +20,10 @@ export function ScriptManagerScreen() {
   function goToPlayground() {
     navigate('/playground');
   }
-
+  function log_out() {
+    logOut()
+    navigate('/login');
+  }
   return (
     <div className="formContainer">
       <section className="form-section">
@@ -35,7 +38,9 @@ export function ScriptManagerScreen() {
         Go to playground
       </button>
       <span className="red">{errorMessage}</span>
-      <Link to="/login">Log out</Link>
+      <button type="button" onClick={log_out}>
+        Log Out
+      </button>
     </div>
   );
 }

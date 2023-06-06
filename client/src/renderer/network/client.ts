@@ -3,6 +3,9 @@ import FileState from './fileState.ts';
 
 const url = 'http://localhost:3001';
 
+var signed_username="";
+var signed_password="";
+
 export async function sendScript(script: string, scriptName: string) {
   // TODO: tris should take name as argument
   /* establish http connection */
@@ -20,8 +23,8 @@ export async function sendScript(script: string, scriptName: string) {
   request.send(
     JSON.stringify({
       type: 'insertScript',
-      user: 'admin',
-      password: 'admin',
+      user: signed_username,
+      password: signed_password,
       title: scriptName,
       source: script,
     })
@@ -46,8 +49,8 @@ export async function updateScript(script: string, scriptName: string) {
   request.send(
     JSON.stringify({
       type: 'updateScript',
-      user: 'admin',
-      password: 'admin',
+      user: signed_username,
+      password: signed_password,
       title: scriptName,
       source: script,
     })
@@ -79,8 +82,8 @@ export async function sendOrUpdate(script: string, scriptName: string) {
   request.send(
     JSON.stringify({
       type: 'insertScript',
-      user: 'admin',
-      password: 'admin',
+      user: signed_username,
+      password: signed_password,
       title: scriptName,
       source: script,
     })
@@ -105,8 +108,8 @@ export async function execScript(scriptName: string) {
   request.send(
     JSON.stringify({
       type: 'execScript',
-      user: 'admin',
-      password: 'admin',
+      user: signed_username,
+      password: signed_password,
       title: scriptName,
     })
   );
@@ -131,8 +134,8 @@ export async function loadScript(scriptName: string, callback) {
   request.send(
     JSON.stringify({
       type: 'loadScript',
-      user: 'admin',
-      password: 'admin',
+      user: signed_username,
+      password: signed_password,
       title: scriptName,
     })
   );
@@ -153,8 +156,8 @@ export async function deleteScript(scriptName: string) {
   request.send(
     JSON.stringify({
       type: 'deleteScript',
-      user: 'admin',
-      password: 'admin',
+      user: signed_username,
+      password: signed_password,
       title: scriptName,
     })
   );
@@ -187,6 +190,10 @@ export async function logIn(username: string, password: string, callback) {
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
+      if(response.status === 0){
+        signed_username = username
+        signed_password = password
+      }
       callback(response);
     }
   };
@@ -198,4 +205,9 @@ export async function logIn(username: string, password: string, callback) {
       password,
     })
   );
+}
+
+export async function logOut() {
+  signed_username=""
+  signed_password=""
 }
