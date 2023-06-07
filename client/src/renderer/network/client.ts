@@ -7,6 +7,10 @@ let signed_username="";
 let signed_password="";
 let currentDir="";
 
+export function getCurrentDirectory(){
+  return currentDir
+}
+
 export interface DirInfo{
   name: string,
   description: string,
