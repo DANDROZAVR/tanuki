@@ -192,7 +192,8 @@ async function loadCurrentDirectory(callback){
       const response = JSON.parse(request.response);
       if(response.status==0) {
         //in response.contents we get array of dirInfo - contents of chosen directory
-        callback(response.contents)
+        let contents = response.contents as DirInfo[]
+        callback(contents)
       } else {
         alert(response.message)
       }
@@ -216,7 +217,6 @@ export async function loadParentDirectory(callback){
       const response = JSON.parse(request.response);
       if(response.status==0) {
         currentDir = response.path
-        //in response.contents we get array of dirInfo - contents of chosen directory
         loadCurrentDirectory(callback)
       } else {
         alert(response.message)
@@ -316,6 +316,7 @@ export async function logIn(username: string, password: string, callback) {
       if(response.status === 0){
         signed_username = username
         signed_password = password
+        currentDir = username + "/"
       }
       callback(response);
     }

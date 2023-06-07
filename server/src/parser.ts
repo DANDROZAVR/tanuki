@@ -248,7 +248,7 @@ export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
         password,
         currentDir: "",
         name: user,
-        description: "home dorectory for user " + user
+        description: "home directory for user " + user
     }))
 }
 
