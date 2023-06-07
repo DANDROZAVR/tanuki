@@ -7,7 +7,7 @@ import {
     parseLoadScript,
     parseCreateUser,
     parseUpdate,
-    parseAuthenticate
+    parseAuthenticate, parseLoadDirectory, getParentDirectory, parseCreateDirectory, DataError
 } from "./parser";
 import {configureSchedule} from "./scheduler";
 
@@ -91,10 +91,10 @@ const server = http.createServer((req, res) => {
                     })
                 } else if (bodyJSON.type == 'updateScript') {
                     parseUpdate(bodyJSON)
-                        .then(_ => {
+                        .then(title => {
                             response = JSON.stringify({
                                 status:0,
-                                message: `Saved script ${bodyJSON.title}`
+                                message: `Saved script ${title}`
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
@@ -106,10 +106,10 @@ const server = http.createServer((req, res) => {
                     })
                 }else if (bodyJSON.type == 'deleteScript') {
                     parseUpdate(bodyJSON)
-                        .then(_ => {
+                        .then(title => {
                             response = JSON.stringify({
                                 status:0,
-                                message: `Deleted script ${bodyJSON.title}`
+                                message: `Deleted script ${title}`
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
@@ -121,10 +121,10 @@ const server = http.createServer((req, res) => {
                     })
                 } else if (bodyJSON.type == 'execScript') {
                     parseExecute(bodyJSON)
-                        .then(_ => {
+                        .then(title => {
                             response = JSON.stringify({
                                 status:0,
-                                message: `Running script ${bodyJSON.title}`
+                                message: `Running script ${title}`
                             })
                         }).catch((error: any) => {
                         response = JSON.stringify({
@@ -165,6 +165,53 @@ const server = http.createServer((req, res) => {
                     }).then((_: any)=> {
                         res.end(response)
                     })
+                } else if (bodyJSON.type == 'loadDirectory') {
+                    parseLoadDirectory(bodyJSON)
+                        .then((contents: any) => {
+                            response = JSON.stringify({
+                                status: 0,
+                                message: `Loaded directory succesfully`,
+                                contents
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:1,
+                            message:error.message
+                        })
+                    }).then((_: any)=> {
+                        res.end(response)
+                    })
+                } else if (bodyJSON.type == 'getParent') {
+                    getParentDirectory(bodyJSON)
+                        .then((path: string) => {
+                            response = JSON.stringify({
+                                status: 0,
+                                message: `Loaded directory succesfully`,
+                                path
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:1,
+                            message:error.message
+                        })
+                    }).then((_: any)=> {
+                        res.end(response)
+                    })
+                } else if (bodyJSON.type == 'createDirectory') {
+                    parseCreateDirectory(bodyJSON)
+                        .then(_ => {
+                            response = JSON.stringify({
+                                status: 0,
+                                message: `Created new directory ${bodyJSON.name}`
+                            })
+                        }).catch((error: any) => {
+                        response = JSON.stringify({
+                            status:1,
+                            message:error.message
+                        })
+                    }).then((_: any)=> {
+                        res.end(response)
+                    })
                 } else if (bodyJSON.type == 'createUser') {
                     parseCreateUser(bodyJSON)
                         .then(_ => {
@@ -188,12 +235,14 @@ const server = http.createServer((req, res) => {
                                 status:0,
                                 message: `Logged in succesfully`,
                             })
-                        }).catch((error: any) => {
+                        }).catch((error) => {
+                            console.log(error)
                         response = JSON.stringify({
                             status:1,
                             message:error.message
                         })
                     }).then((_: any)=> {
+                        console.log(response)
                         res.end(response)
                     })
                 }

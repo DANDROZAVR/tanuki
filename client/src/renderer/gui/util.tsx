@@ -39,7 +39,7 @@ export function FunctionButton({
 }) {
   return (
     <section className="form-section">
-      <input id={id} type="text" placeholder="my_script.tnk" />
+      <input id={id} type="text" placeholder="my_script" />
       <button type="button" onClick={on_click}>
         {text}
       </button>

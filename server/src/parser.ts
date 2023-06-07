@@ -1,6 +1,6 @@
 import {
     deletePathByName,
-    dirInfo,
+    dirInfo, getPathByID,
     getPathByName,
     getPathByParent,
     getUserByName,
@@ -15,7 +15,7 @@ import {
 import {makeDirectory, saveJSToPath} from "./helpers/scriptsDymSaving";
 import {createWorker} from "./workersManager";
 import * as crypto from "crypto"
-import {deleteFromPath} from "./helpers/scriptsDymDeleting";
+import {deleteDirectory, deleteFromPath} from "./helpers/scriptsDymDeleting";
 import {loadFileFromPath} from "./helpers/scriptsDymLoading";
 
 /**
@@ -29,9 +29,14 @@ import {loadFileFromPath} from "./helpers/scriptsDymLoading";
  *  }
  */
 
+interface Script {
+    title: string
+    source: string
+}
+
 const MAX_TIMES_EXECUTION = 1000
 
-class DataError extends Error{}
+export class DataError extends Error{}
 
 const checkContainsTags = (bodyJson: any, tags: string[]) : boolean => {
     for (const word of tags)
@@ -63,13 +68,13 @@ export const parseInsert = async (bodyJson: any) : Promise<void> => {
 
 export const parseCreateDirectory = async (bodyJson: any) : Promise<void> => {
     await parseAuthenticate(bodyJson)
-    if (!checkContainsTags(bodyJson, ['user', 'name', 'currentDir']))
+    if (!checkContainsTags(bodyJson, ['user', 'name', 'currentDir', 'description']))
         throw new DataError('not a valid insert request')
     const name = bodyJson.name
     const user = bodyJson.user
     const path = 'scripts/' + bodyJson.currentDir  + name + '/';
     const parent = bodyJson.currentDir
-    await insertPathByName(name, "", user, parent, true, false)
+    await insertPathByName(name, bodyJson.description, user, parent, true, false)
         .then(_ => makeDirectory(path))
         .catch(error =>{
             if(error.errno == 19){
@@ -80,7 +85,7 @@ export const parseCreateDirectory = async (bodyJson: any) : Promise<void> => {
         })
 }
 
-export const parseUpdate = async (bodyJson: any) : Promise<void> => {
+export const parseUpdate = async (bodyJson: any) : Promise<string> => {
     await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'path', 'description', 'source']))
         throw new DataError('not a valid update request')
@@ -98,27 +103,41 @@ export const parseUpdate = async (bodyJson: any) : Promise<void> => {
             console.log(error)
                 throw error
         })
+    return script.title
 }
 
-export const parseDelete = async (bodyJson: any) : Promise<void> => {
+export const parseDelete = async (bodyJson: any) : Promise<string> => {
     await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'path']))
         throw new DataError('not a valid delete request')
     const user = bodyJson.user
-    const path = bodyJson.path
-    const script : Path = await getPathByName(path, user)
-    if(script === undefined || script.isDirectory){
+    const path : Path = await getPathByName(bodyJson.path, user)
+    if(path === undefined){
         throw new DataError("Script with that name does not exist")
     }
-    await deletePathByName(path, user)
-        .then(_ => deleteFromPath("scripts/"+path+(script.pureJScode ? '.js' : '.tnk')))
-        .catch(error =>{
-            console.log(error)
-            throw error
-        })
+    if(!path.isDirectory) {
+        await deletePathByName(path.path, user)
+            .then(_ => deleteFromPath("scripts/" + path.path + (path.pureJScode ? '.js' : '.tnk')))
+            .catch(error => {
+                console.log(error)
+                throw error
+            })
+    } else {
+        const subdirs = await getPathByParent(path.id)
+        if(subdirs.length > 0){
+            throw new DataError("Directory is not empty")
+        }
+        await deletePathByName(path.path, user)
+            .then(_ => deleteDirectory("scripts/" + path.path))
+            .catch(error => {
+                console.log(error)
+                throw error
+            })
+    }
+    return path.title
 }
 
-export const parseExecute = async (bodyJson: any) : Promise<void> => {
+export const parseExecute = async (bodyJson: any) : Promise<string> => {
     await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'path']))
         throw new DataError('not a valid execute request')
@@ -133,9 +152,10 @@ export const parseExecute = async (bodyJson: any) : Promise<void> => {
             scriptOptions: bodyJson.scriptOptions
         }
     })
+    return script.title
 }
 
-export const parseLoadScript = async (bodyJson: any) : Promise<string> => {
+export const parseLoadScript = async (bodyJson: any) : Promise<Script> => {
     await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'path']))
         throw new DataError('not a valid load request')
@@ -144,7 +164,7 @@ export const parseLoadScript = async (bodyJson: any) : Promise<string> => {
         throw new DataError("Script with that name does not exist")
     }
     const source = loadFileFromPath("scripts/"+script.path+(script.pureJScode ? '.js' : '.tnk'))
-    return source;
+    return {title:script.title, source}
 }
 
 export const parseLoadDirectory = async (bodyJson: any) : Promise<dirInfo[]> => {
@@ -158,16 +178,18 @@ export const parseLoadDirectory = async (bodyJson: any) : Promise<dirInfo[]> => 
     return getPathByParent(directory.id);
 }
 
-export const parseLoadHomeDirectory = async (bodyJson: any) : Promise<dirInfo[]> => {
+export const getParentDirectory = async (bodyJson: any) : Promise<string> => {
     await parseAuthenticate(bodyJson)
-    if (!checkContainsTags(bodyJson, ['user']))
+    if (!checkContainsTags(bodyJson, ['user', 'path']))
         throw new DataError('not a valid load request')
-    const user = bodyJson.user
-    const directory : Path = (await getPathByName(user+"/", user))
+    const directory : Path = (await getPathByName(bodyJson.path, bodyJson.user))
     if(directory === undefined || !directory.isDirectory){
         throw new DataError("Directory with that name does not exist")
     }
-    return getPathByParent(directory.id);
+    if(directory.parent == -1){
+        return directory.path
+    }
+    return (await getPathByID(directory.parent)).path
 }
 
 export const parseSchedule = async (bodyJson: any) : Promise<Date> => {
@@ -225,7 +247,8 @@ export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
         user,
         password,
         currentDir: "",
-        name: user
+        name: user,
+        description: "home dorectory for user " + user
     }))
 }
 

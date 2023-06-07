@@ -8,3 +8,11 @@ export const deleteFromPath = (path: string) : boolean => {
     fs.unlinkSync(path)
     return true;
 }
+
+export const deleteDirectory = (path:string) : boolean =>{
+    if (!fs.existsSync(path)) {
+        return false;
+    }
+    fs.rmdirSync(path)
+    return true;
+}

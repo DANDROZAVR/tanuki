@@ -8,13 +8,12 @@ export function ScriptManagerScreen() {
   const [errorMessage, setErrorMessage] = React.useState('');
 
   function onLoadScript(scriptName: string) {
-    console.log('loadscript');
-    loadScript(scriptName, (scriptState) => {
+    /*loadScript(scriptName, (scriptState) => {
       navigate('/file_view', {
         scriptState,
         themeState: window.theme.get(),
       });
-    });
+    });*/
   }
 
   function goToPlayground() {

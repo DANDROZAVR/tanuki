@@ -12,7 +12,7 @@ function Playground() {
   );
   const navigate = useNavigate();
   function goBack() {
-    navigate('/script_manager');
+    navigate('/home');
   }
 
   return (

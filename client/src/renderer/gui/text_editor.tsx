@@ -9,7 +9,7 @@ import { Options } from 'renderer/render_options';
 import { FunctionButton } from './util';
 
 const initialScript: Script = {
-  name: "script.tnk",
+  name: "script",
   lines: [],
 };
 

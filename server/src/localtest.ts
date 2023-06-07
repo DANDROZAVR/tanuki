@@ -11,7 +11,11 @@ import {
     createUser,
     parseCreateUser,
     authenticateUser,
-    parseDelete, parseUpdate, parseLoadScript, parseCreateDirectory, parseLoadDirectory, parseLoadHomeDirectory
+    parseDelete,
+    parseUpdate,
+    parseLoadScript,
+    parseCreateDirectory,
+    parseLoadDirectory,
 } from "./parser";
 import {configureSchedule} from "./scheduler";
 import {deleteFromPath} from "./helpers/scriptsDymDeleting";
@@ -20,25 +24,12 @@ const main = async () => {
     createDB()
     configureSchedule()
 
-    //deleteFromPath("scripts/admin/skrypt1-compiled.js")
-    /*parseInsert({
+
+    console.log(await parseDelete({
         user: "admin2",
         password: "admin2",
-        title: "anything",
-        source: "do something",
-        description: "any",
-        currentDir: "admin2/"
-    })*/
-
-
-    console.log(await parseLoadHomeDirectory({
-        user: "admin2",
-        password: "admin2",
-        path: "admin2/subdir/"
+        path: "admin2/"
     }))
-
-
-
 
     console.log('next')
 
