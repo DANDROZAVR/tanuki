@@ -141,7 +141,7 @@ export const parseExecute = async (bodyJson: any) : Promise<string> => {
     await parseAuthenticate(bodyJson)
     if (!checkContainsTags(bodyJson, ['user', 'path']))
         throw new DataError('not a valid execute request')
-    const script : any = (await getPathByName(bodyJson.path, bodyJson.user))
+    const script : Path = (await getPathByName(bodyJson.path, bodyJson.user))
     if(script === undefined || script.isDirectory){
         throw new DataError("Script with that name does not exist")
     }
@@ -194,12 +194,15 @@ export const getParentDirectory = async (bodyJson: any) : Promise<string> => {
 
 export const parseSchedule = async (bodyJson: any) : Promise<Date> => {
     await parseAuthenticate(bodyJson)
-    if (!checkContainsTags(bodyJson, ['user', 'title', 'scheduleOptions']))
+    if (!checkContainsTags(bodyJson, ['user', 'path', 'scheduleOptions']))
         throw new DataError('not a valid schedule request')
     const options = bodyJson.scheduleOptions
     if (!checkContainsTags(options, ['tag']))
         throw new DataError('not a valid schedule request')
-    const script : Path = await getPathByName(bodyJson.title, bodyJson.user)
+    const script : Path = (await getPathByName(bodyJson.path, bodyJson.user))
+    if(script === undefined || script.isDirectory){
+        throw new DataError("Script with that name does not exist")
+    }
     return addToCalendar(script, options)
 
 }
