@@ -1,6 +1,6 @@
 build/**/*
 package-lock.json
-temp.db
+tanuki.db
 node_modules
 utils/logs_errors.txt
 .idea
