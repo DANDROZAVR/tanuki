@@ -8,7 +8,7 @@ ensureDirectoryExistence(logs_errors)
 const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
-const maxErrorsRetrying = 3
+const maxErrorsRetrying = 7
 let workersInWork : [Worker, any, number, any][] = []
 let workersWaiting : [string, any, number, any][] = []
 
@@ -57,12 +57,12 @@ setInterval(() => {
         }
     }
     if (workersInWork.length <= 0 && workersWaiting.length) { // change
-        const workerInfo = workersWaiting[0]
-        workersWaiting.splice(0, 1)
+        // @ts-ignore
+        const workerInfo : [string, any, number, any] = workersWaiting.shift()
         console.log(workersWaiting.length)
         // some problems wih adding workers?
         const worker = new Worker(workerInfo[0], workerInfo[1])
-        console.log("worker created for task: " + workerInfo[1].workerData.script.titl)
+        console.log("worker created for task: " + workerInfo[1].workerData.script.title)
         workersInWork.push([worker, workerInfo[1], workerInfo[2], workerInfo[3]])
         enableLogs(worker)
     }

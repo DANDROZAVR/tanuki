@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS paths (
     title VARCHAR(200) NOT NULL,
     description VARCHAR(200) NOT NULL,
     parent INTEGER REFERENCES paths,
-    isDirectory BOOLEAN,
-    pureJsCode BOOLEAN,
+    isDirectory BOOLEAN, --- PATH or SCRIPT switch
+    pureJSCode BOOLEAN,
     user INTEGER REFERENCES users,
     UNIQUE(path, user)
 );
