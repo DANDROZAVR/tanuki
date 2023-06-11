@@ -1,4 +1,18 @@
-import {deletePathOrScriptByName, dirInfo, getPathByID, getPathByName, getPathByParent, getUserByName, insertIntoCalendar, insertIntoSchedule, insertPathByName, insertUser, Path, updatePathByName, updateScheduleOptionsByID
+import {
+    deletePathOrScriptByName,
+    dirInfo,
+    getPathByID,
+    getPathByName,
+    getPathByParent,
+    getUserByName, getUserSettingsByUserName,
+    insertIntoCalendar,
+    insertIntoSchedule,
+    insertPathByName,
+    insertUser,
+    Path,
+    updatePathByName,
+    updateScheduleOptionsByID,
+    updateUserSettings
 } from "./sql/database"
 import {makeDirectory, saveJSToPath} from "./helpers/scriptsDymSaving"
 import {createWorker} from "./workersManager"
@@ -140,12 +154,13 @@ export const parseExecute = async (bodyJson: any) : Promise<string> => {
         throw new DataError("Script with that name does not exist")
     }
     script.path = getScriptPath(script.path, script.pureJSCode)
+    const userSettings = await getUserSettingsByUserName(bodyJson.user)
     createWorker({
         workerData: {
             script: script,
             scriptOptions: bodyJson.scriptOptions
         }
-    })
+    }, userSettings)
     return script.title
 }
 
@@ -252,6 +267,24 @@ export const parseCreateUser = async (bodyJson: any) : Promise<void> => {
             name: user,
             description: "home directory for user " + user
         }))
+}
+
+export const parseUpdateUserSettings = async (bodyJson: any) : Promise<string> => {
+    await parseAuthenticate(bodyJson)
+    const settingsAvailable = ['retryScriptOnFailDefault', 'maxScriptsRunningSameTime']
+    let response = ''
+    for (const setting of settingsAvailable) {
+        if (bodyJson[setting] && typeof bodyJson[setting] === 'number') {
+            await updateUserSettings(bodyJson.user, setting, bodyJson[setting])
+            if (response.length)
+                response += ' & '
+            response += `update '${setting}' to ${bodyJson[setting]}`
+        }
+    }
+    if (!response.length) {
+        response = 'Nothing was mentioned to update in user settings'
+    }
+    return response
 }
 
 export const parseAuthenticate = async (bodyJson: any) : Promise<void> => {

@@ -1,4 +1,4 @@
-import {getFirstFromCalendar, getPathByID, getScheduleByID, removeFromCalendar} from "./sql/database";
+import {getFirstFromCalendar, getPathByID, getScheduleByID,getUserSettingsByUserID, removeFromCalendar} from "./sql/database";
 import {runWorker} from "./workersManager";
 import {addToCalendar} from "./parser";
 
@@ -20,13 +20,14 @@ const processNextEvent = async (): Promise<boolean> => {
             const options = schedule.options;
             const script = await getPathByID(schedule.scriptID)
             await removeFromCalendar(event.id);
+            const userSettings = await getUserSettingsByUserID(script.user)
             options.lastRunFeedback = await runWorker({
                 workerData: {
                     script: script,
                     lastRunFeedback: options.lastRunFeedback,
                     scriptOptions: options.scriptOptions
                 }
-            });
+            }, userSettings);
             await addToCalendar(script, options, false, event.scheduleID);
             return true;
         } else {

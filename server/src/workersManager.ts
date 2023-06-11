@@ -1,5 +1,6 @@
 import {Worker} from "node:worker_threads";
 import {ensureDirectoryExistence} from "./helpers/scriptsDymSaving";
+import { UserSettings } from "./sql/database";
 const fs = require('fs')
 const Console = console.Console
 
@@ -8,15 +9,16 @@ ensureDirectoryExistence(logs_errors)
 const output = fs.createWriteStream(logs_errors)
 const errors = new Console(output)
 
-const maxErrorsRetrying = 7
-let workersInWork : [Worker, any, number, any][] = []
-let workersWaiting : [string, any, number, any][] = []
+let workersInWork : [Worker, any, number, any, UserSettings][] = []
+let workersWaiting : [string, any, number, any, UserSettings][] = []
+const tasksPerUserRunning = {}
 
+// TODO: do refactor to change this array to JSON
 setInterval(() => {
+    console.log(tasksPerUserRunning)
     for (let i = workersInWork.length - 1; i >= 0; --i) {
         let toBeRemoved = false, ended = false
-        const workerOptions = workersInWork[i][1]
-        const exitCode = workersInWork[i][2]
+        const [, workerOptions, exitCode, , userSettings] = workersInWork[i]
         if (workersInWork[i][2] == 1) {
             // naturally finished
             console.log('normally finished task "' + workerOptions.workerData.script.title + '"')
@@ -25,11 +27,11 @@ setInterval(() => {
         } else
         if (workersInWork[i][2] > 1) {
             // finished with an error. was runned x - 1 time (initially 2 means an error)
-            if (exitCode <= maxErrorsRetrying) {
+            if (exitCode <= userSettings.retryScriptOnFailDefault) {
                 console.log('retrying task "' + workerOptions.workerData.script.title + '"')
-                createWorker(workerOptions, workerOptions.callback, -exitCode)
+                createWorker(workerOptions, userSettings, workerOptions.callback, -exitCode)
             } else {
-                const error = `task "${workerOptions.workerData.script.title}" failed ${maxErrorsRetrying} times`
+                const error = `task "${workerOptions.workerData.script.title}" failed ${userSettings.retryScriptOnFailDefault} times`
                 console.log(error)
                 errors.log(error)
                 ended = true
@@ -49,41 +51,47 @@ setInterval(() => {
                 } else {
                     workerOptions.callback(workerOptions.workerData.lastRunFeedback)
                 }
-
             }
         }
         if (toBeRemoved) {
+            // @ts-ignore
+            tasksPerUserRunning[userSettings.userID] -= 1
             workersInWork.splice(i, 1);
         }
     }
     if (workersInWork.length <= 0 && workersWaiting.length) { // change
         // @ts-ignore
-        const workerInfo : [string, any, number, any] = workersWaiting.shift()
+        const workerInfo : [string, any, number, any, userSettings] = workersWaiting.shift()
         console.log(workersWaiting.length)
         // some problems wih adding workers?
         const worker = new Worker(workerInfo[0], workerInfo[1])
         console.log("worker created for task: " + workerInfo[1].workerData.script.title)
-        workersInWork.push([worker, workerInfo[1], workerInfo[2], workerInfo[3]])
+        // @ts-ignore
+        tasksPerUserRunning[workerInfo[4].userID] += 1
+        workersInWork.push([worker, workerInfo[1], workerInfo[2], workerInfo[3], workerInfo[4]])
         enableLogs(worker)
     }
 }, 1000)
 // TODO: make interfaces for each call in database like WorkerOptions
 
-export const runWorker = (workerOptions: any) : Promise<any> => {
+export const runWorker = (workerOptions: any, userSettings: UserSettings) : Promise<any> => {
     return new Promise((resolve) => {
-        createWorker(workerOptions, (feedback: any) => {
+        createWorker(workerOptions, userSettings, (feedback: any) => {
             resolve(feedback)
             return
         })
     })
 }
 
-export const createWorker = (workerOptions: any, callback: any = undefined, exitCode: number = 0)  => {
+export const createWorker = (workerOptions: any, userSettings: UserSettings, callback: any = undefined, exitCode: number = 0)  => {
     if (callback != undefined) {
         workerOptions['callback'] = callback
     }
+    if (!(userSettings.userID in tasksPerUserRunning)) { // @ts-ignore
+        tasksPerUserRunning[userSettings.userID] = 0
+    }
     const workerPath = './build/worker.js'
-    workersWaiting.push([workerPath, workerOptions, exitCode, undefined])
+    workersWaiting.push([workerPath, workerOptions, exitCode, undefined, userSettings])
     console.log('added task "' + workerOptions.workerData.script.title + '"')
 }
 
@@ -118,7 +126,7 @@ const enableLogs = (worker: Worker) => {
                 }``
             } else {
                 console.log('worker stopped normally')
-                workersInWork[index][2] = 0; // means we exited with 0 code and we don't want longer to retry
+                workersInWork[index][2] = 0; // means we exited with 0 code, and we don't want longer to retry
             }
             workersInWork[index][2] = -workersInWork[index][2] + 1
         }

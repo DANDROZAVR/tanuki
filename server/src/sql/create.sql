@@ -6,6 +6,13 @@ CREATE TABLE IF NOT EXISTS users (
     hash VARCHAR(128)
 );
 
+CREATE TABLE IF NOT EXISTS userSettings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userID INTEGER REFERENCES users(id),
+    retryScriptOnFailDefault INTEGER DEFAULT 1,
+    maxScriptsRunningSimultaneously INTEGER DEFAULT 1
+);
+
 CREATE TABLE IF NOT EXISTS paths (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     path VARCHAR(200) NOT NULL,

@@ -1,14 +1,6 @@
 import http = require('http');
 import {createDB} from "./sql/database";
-import {
-    parseExecute,
-    parseInsert,
-    parseSchedule,
-    parseLoadScript,
-    parseCreateUser,
-    parseUpdate,
-    parseAuthenticate, parseLoadDirectory, getParentDirectory, parseCreateDirectory, parseDelete
-} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, parseLoadScript, parseCreateUser, parseUpdate, parseAuthenticate, parseLoadDirectory, getParentDirectory, parseCreateDirectory, parseDelete, parseUpdateUserSettings} from "./parser";
 import {configureSchedule} from "./scheduler";
 
 createDB();
@@ -140,6 +132,9 @@ const server = http.createServer((req, res) => {
                     break;
                 case 'createUser':
                     parseAction(parseCreateUser, () => `Created new user ${bodyJSON.username} successfully`);
+                    break;
+                case 'updateUserSettings':
+                    parseAction(parseUpdateUserSettings, (response) => response);
                     break;
                 case 'signIn':
                     parseAuthenticate(bodyJSON)

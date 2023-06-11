@@ -7,6 +7,13 @@ export interface User {
     hash: string
 }
 
+export interface UserSettings {
+    id: number
+    userID: number
+    retryScriptOnFailDefault: number
+    maxScriptsRunningSimultaneously: number
+}
+
 export interface Path {
     id: number
     path: string
@@ -130,12 +137,27 @@ export function deletePathByID(path: string, userID: number): Promise<boolean> {
 export function insertUser(name: string, salt:string, hash:string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
         const insert = db.prepare("INSERT INTO users (name, salt, hash) VALUES (?, ?, ?)")
-        insert.run([name, salt, hash], (error) => {
-            if (error == null)
-                resolve(true); else
+        insert.run([name, salt, hash], async function (error) {
+            if (error == null) {
+                const id = this.lastID
+                resolve(id)
+            } else {
                 reject(error)
+            }
         })
     })
+        .then(userID => {
+            return new Promise(async (resolve, reject) => {
+                const emptySettingsInsert = db.prepare("INSERT INTO userSettings (userID) VALUES (?)")
+                emptySettingsInsert.run([userID], (error) => {
+                    if (error == null) {
+                        resolve(true)
+                    } else {
+                        reject(error)
+                    }
+                })
+            })
+        })
 }
 
 export const insertIntoSchedule = async(scriptID: number, options: any): Promise<number> => {
@@ -146,11 +168,7 @@ export const insertIntoSchedule = async(scriptID: number, options: any): Promise
         insert.run([scriptID, JSON.stringify(options)], async function (error) {
             if (error == null) {
                 const id = this.lastID
-                if (error == null) {
-                    resolve(id)
-                } else {
-                    reject(error)
-                }
+                resolve(id)
             } else {
                 reject(error)
             }
@@ -186,6 +204,24 @@ export function updateScheduleOptionsByID(scheduleID: number, options: any): Pro
                 reject(error)
             }
         })
+    })
+}
+
+export const updateUserSettings = async (userName: string, settingsParameter: string, settingsValue: string) => {
+    return new Promise((resolve, reject) => {
+        getUserByName(userName)
+            .then(user => {
+                const update = db.prepare(
+                    `UPDATE userSettings SET ${settingsParameter} = ? WHERE userID = ?`
+                );
+                update.run([settingsValue, user.id], (error) => {
+                    if (error == null) {
+                        resolve(true)
+                    } else {
+                        reject(error)
+                    }
+                })
+            })
     })
 }
 
@@ -259,8 +295,49 @@ export function getUserByName(name: string) : Promise<User> {
             if (row === undefined) {
                 reject(`There are no users with the name ${name}`)
             } else {
-                // @ts-ignore
-                resolve(row)
+                resolve(row as User)
+            }
+        })
+    })
+}
+
+export function getUserByID(id: number) : Promise<User> {
+    return new Promise((resolve, reject) => {
+        const selectId = db.prepare("SELECT * FROM users WHERE users.id == ?")
+        selectId.get([id], (err, row) => {
+            if (err)
+                reject(err); else
+            if (row === undefined) {
+                reject(`There are no users with the id ${id}`)
+            } else {
+                resolve(row as User)
+            }
+        })
+    })
+}
+
+export function getUserSettingsByUserName(name: string) : Promise<UserSettings> {
+    return new Promise(async (resolve, reject) => {
+        const userID = await getUserByName(name)
+        const selectId = db.prepare("SELECT * FROM userSettings WHERE userID == ?")
+        selectId.get([userID], (err, row) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(row as UserSettings)
+            }
+        })
+    })
+}
+
+export function getUserSettingsByUserID(id: number) : Promise<UserSettings> {
+    return new Promise(async (resolve, reject) => {
+        const selectId = db.prepare("SELECT * FROM userSettings WHERE userID == ?")
+        selectId.get([id], (err, row) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(row as UserSettings)
             }
         })
     })
