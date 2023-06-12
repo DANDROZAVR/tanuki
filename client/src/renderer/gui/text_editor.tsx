@@ -1,12 +1,13 @@
 import './style.css';
 import React from 'react';
 import Editor from '@monaco-editor/react';
-import { sendScript, execScript, loadScript } from '../network/client.ts';
+import { sendScript, execScript, loadScript, scheduleScript } from '../network/client.ts';
 import 'reactflow/dist/style.css';
 import { RenderOptions } from '@testing-library/react';
 import { Script } from 'renderer/script';
 import { Options } from 'renderer/render_options';
 import { FunctionButton } from './util';
+import { scheduler } from 'timers/promises';
 
 const initialScript: Script = {
   name: "script",
@@ -49,6 +50,18 @@ export function TextEditor({renderOptions, editorTheme, scriptState} : {renderOp
         const input = document.getElementById('scriptToRun') as HTMLInputElement | null;
         execScript(input?.value);
       }}/>
+      <section className="form-section">
+        <input id="scheduleTitle" type="text" placeholder="my_script" />
+        <input id="scheduleTime" type="text" placeholder={new Date().toLocaleString()}/>
+        <button type="button" onClick={() => {
+          const title = document.getElementById('scheduleTitle') as HTMLInputElement | null;
+          const time = document.getElementById('scheduleTime') as HTMLInputElement | null;
+          console.log(new Date('12.06.2023, 09:49:38'));
+          scheduleScript(title?.value, time?.value);
+        }}>
+          Schedule
+        </button>
+      </section>
     </div>
   );
 }

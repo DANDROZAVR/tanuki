@@ -64,6 +64,7 @@ export function NodeEditor() {
 
   const spawnNode = () => {
     const len = nodes.length;
+    console.log(JSON.stringify(nodes));
     const x_pos = nodes[len - 1].position.x;
     const y_pos = nodes[len - 1].position.y + 100; //TODO: centralize this part
     const n_id = nodes.length.toString();
@@ -86,6 +87,7 @@ export function NodeEditor() {
         target: n_id
       }
     ]);
+
   };
 
   const ParseNodes = () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import FileState from './fileState.ts';
 
-const url = 'http://localhost:3001';
+let url = 'http://localhost:3001';
 
 let signed_username="";
 let signed_password="";
@@ -306,7 +306,8 @@ export async function createUser(username: string, password: string, callback) {
   );
 }
 
-export async function logIn(username: string, password: string, callback) {
+export async function logIn(username: string, password: string, server_ip: string, callback) {
+  url = server_ip;
   /* establish http connection */
   const request = new XMLHttpRequest();
   request.open('POST', url, true);
@@ -327,6 +328,34 @@ export async function logIn(username: string, password: string, callback) {
       type: 'signIn',
       user: username,
       password,
+    })
+  );
+}
+
+export async function scheduleScript(scriptName: string, scheduleTime: string) {
+  /* establish http connection */
+  const request = new XMLHttpRequest();
+  request.open('POST', url, true);
+  request.onreadystatechange = function onStateChange() {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = JSON.parse(request.response);
+
+      alert(response.message);
+    }
+  };
+  request.setRequestHeader('Content-type', 'application/json');
+  request.send(
+    JSON.stringify({
+      type: 'scheduleScript',
+      user: signed_username,
+      password: signed_password,
+      path: currentDir+scriptName,
+      scheduleOptions: {
+        tag : "once",
+        once: {
+          date : scheduleTime
+        }
+      }
     })
   );
 }

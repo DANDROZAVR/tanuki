@@ -8,10 +8,11 @@ export function LogInScreen() {
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [errorMessage, setErrorMessage] = React.useState('');
+  const [serverIP, setServerIP] = React.useState('http://localhost:3001');
 
   function onSubmit(e) {
     e.preventDefault();
-    logIn(username, password, response => {
+    logIn(username, password, serverIP, response => {
       if (response.status !== 0) {
         setErrorMessage('Error: ' + response.message);
       } else {
@@ -45,6 +46,18 @@ export function LogInScreen() {
             placeholder="Password"
             id="password"
             name="password"
+          />
+        </label>
+        <label htmlFor="server_ip">
+          Password:
+          <input
+            className="credentialsInput"
+            value={serverIP}
+            onChange={(e) => setServerIP(e.target.value)}
+            type="text"
+            placeholder="Server IP"
+            id="server_ip"
+            name="server_ip"
           />
         </label>
         <span className="red">{errorMessage}</span>
