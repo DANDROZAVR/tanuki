@@ -1,21 +1,28 @@
-import { Database } from 'sqlite3';
-import fs from 'fs';
+import { Database } from 'sqlite3'
+import fs from 'fs'
 export interface User {
-    id: number;
-    name: string;
-    salt: string;
-    hash: string;
+    id: number
+    name: string
+    salt: string
+    hash: string
+}
+
+export interface UserSettings {
+    id: number
+    userID: number
+    retryScriptOnFailDefault: number
+    maxScriptsRunningSimultaneously: number
 }
 
 export interface Path {
-    id: number;
-    path: string;
-    title: string;
-    description: string;
-    parent: Path['id'];
-    isDirectory: boolean;
-    pureJScode: boolean;
-    user: User['id'];
+    id: number
+    path: string
+    title: string
+    description: string
+    parent: Path['id']
+    isDirectory: boolean
+    pureJSCode: boolean
+    user: User['id']
 }
 
 export interface dirInfo{
@@ -25,7 +32,7 @@ export interface dirInfo{
 }
 
 interface Schedule {
-    id: number;
+    id: number
     options: ScheduleOptions,
     scriptID: Path['id'],
 }
@@ -56,15 +63,15 @@ interface NotOnceOptions {
 
 interface Calendar {
     id: number,
-    scheduleID: Schedule['id'];
-    datetime: Date;
+    scheduleID: Schedule['id']
+    datetime: Date
 }
 
 
-const db = new Database('tanuki.db');
+const db = new Database('tanuki.db')
 
 export function createDB(): void {
-    db.exec(fs.readFileSync('src/sql/create.sql').toString());
+    db.exec(fs.readFileSync('src/sql/create.sql').toString())
 }
 
 export function insertPathByName(title: string, description: string, userName: string, parent: string, isDir: boolean, pureJSCode: boolean) : Promise<boolean> {
@@ -77,27 +84,15 @@ export function insertPathByName(title: string, description: string, userName: s
 
 export function insertPathByID(title: string, description: string, userID: number, parent: string, isDir: boolean, pureJSCode: boolean): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        var path = parent + title
-        if(isDir){
-            path += '/'
-        }
-        var parentDir = await getPathByUserID(parent, userID)
-        var parentID = -1
-        if(parentDir!=undefined){
-            parentID = parentDir.id
-        }
-        const insert = db.prepare("INSERT INTO paths (title, description, user, path, parent, isDirectory, pureJsCode) VALUES (?, ?, ?, ?, ?, ?, ?)")
-        try {
-            insert.run([title, description, userID, path, parentID, isDir, pureJSCode], (error) => {
-                if (error == null)
-                    resolve(true); else
-                    reject(error)
-            }); // TODO: change to serialization if multithreadining is enabled
-        } catch (err) {
-            // TODO: make research. probably exceptions there don't work
-            console.error("Error inserting script:", err);
-            return false;
-        }
+        const path = parent + title + (isDir ? '/' : '')
+        const parentDir = await getPathByUserID(parent, userID)
+        const parentID = parentDir?.id ?? -1
+        const insert = db.prepare("INSERT INTO paths (title, description, user, path, parent, isDirectory, pureJSCode) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        insert.run([title, description, userID, path, parentID, isDir, pureJSCode], (error) => {
+            if (error == null)
+                resolve(true); else
+                reject(error)
+        })
     })
 }
 
@@ -112,20 +107,15 @@ export function updatePathByName(description: string, path: string, userName: st
 export function updatePathByID(description: string, path: string, userID: number): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
         const update = db.prepare("UPDATE paths SET description =? WHERE user = ? AND path = ?")
-        try {
-            update.run([description, userID, path], (error) => {
-                if (error == null)
-                    resolve(true); else
-                    reject(error)
-            });
-        } catch (err) {
-            console.error("Error updating script:", err);
-            return false;
-        }
+        update.run([description, userID, path], (error) => {
+            if (error == null) // TODO: could be non null but false? if not -- check only with if (error)
+                resolve(true); else
+                reject(error)
+        })
     })
 }
 
-export function deletePathByName(path: string, userName: string) : Promise<boolean> {
+export function deletePathOrScriptByName(path: string, userName: string) : Promise<boolean> {
     return new Promise((resolve, reject) => {
         getUserByName(userName)
             .then(async user => resolve(await deletePathByID(path, user.id)))
@@ -136,60 +126,54 @@ export function deletePathByName(path: string, userName: string) : Promise<boole
 export function deletePathByID(path: string, userID: number): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
         const update = db.prepare("DELETE FROM paths WHERE user = ? AND path = ?")
-        try {
-            update.run([userID, path], (error) => {
-                if (error == null)
-                    resolve(true); else
-                    reject(error)
-            });
-        } catch (err) {
-            console.error("Error deleting script:", err);
-            return false;
-        }
+        update.run([userID, path], (error) => {
+            if (error == null)
+                resolve(true); else
+                reject(error)
+        })
     })
 }
 
 export function insertUser(name: string, salt:string, hash:string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        const insert = db.prepare("INSERT INTO users (name, salt, hash) VALUES (?, ?, ?)");
-        try {
-            insert.run([name, salt, hash], (error) => {
-                if (error == null)
-                    resolve(true); else
-                    reject(error)
-            });
-        } catch (err) {
-            console.error("Error inserting user:", err);
-            return false;
-        }
+        const insert = db.prepare("INSERT INTO users (name, salt, hash) VALUES (?, ?, ?)")
+        insert.run([name, salt, hash], async function (error) {
+            if (error == null) {
+                const id = this.lastID
+                resolve(id)
+            } else {
+                reject(error)
+            }
+        })
     })
+        .then(userID => {
+            return new Promise(async (resolve, reject) => {
+                const emptySettingsInsert = db.prepare("INSERT INTO userSettings (userID) VALUES (?)")
+                emptySettingsInsert.run([userID], (error) => {
+                    if (error == null) {
+                        resolve(true)
+                    } else {
+                        reject(error)
+                    }
+                })
+            })
+        })
 }
 
-// TODO: probably all function shoule look like this (serialization)
 export const insertIntoSchedule = async(scriptID: number, options: any): Promise<number> => {
     return new Promise((resolve, reject) => {
-            const insert = db.prepare(
-                "INSERT INTO schedule (scriptID, options) VALUES (?, ?)"
-            );
-            try {
-                insert.run([scriptID, JSON.stringify(options)], async function (error) {
-                    if (error == null) {
-                        const id = this.lastID;
-                        if (error == null) {
-                            resolve(id);
-                        } else {
-                            reject(error);
-                        }
-                    } else {
-                        reject(error);
-                    }
-                });
-            } catch (err) {
-                console.error("Error inserting into schedule:", err);
-                reject(err);
+        const insert = db.prepare(
+            "INSERT INTO schedule (scriptID, options) VALUES (?, ?)"
+        )
+        insert.run([scriptID, JSON.stringify(options)], async function (error) {
+            if (error == null) {
+                const id = this.lastID
+                resolve(id)
+            } else {
+                reject(error)
             }
-        //});
-    });
+        })
+    })
 }
 
 
@@ -197,20 +181,15 @@ export function insertIntoCalendar(scheduleID: number, datetime: Date): Promise<
     return new Promise((resolve, reject) => {
         const insert = db.prepare(
             "INSERT INTO calendar (scheduleID, datetime) VALUES (?, ?)"
-        );
-        try {
-            insert.run([scheduleID, datetime], (error) => {
-                if (error == null) {
-                    resolve(true);
-                } else {
-                    reject(error);
-                }
-            });
-        } catch (err) {
-            console.error("Error inserting into calendar:", err);
-            return false;
-        }
-    });
+        )
+        insert.run([scheduleID, datetime], (error) => {
+            if (error == null) {
+                resolve(true)
+            } else {
+                reject(error)
+            }
+        })
+    })
 }
 
 export function updateScheduleOptionsByID(scheduleID: number, options: any): Promise<boolean> {
@@ -218,18 +197,31 @@ export function updateScheduleOptionsByID(scheduleID: number, options: any): Pro
         const update = db.prepare(
             "UPDATE schedule SET options = ? WHERE id = ?"
         )
-        try {
-            update.run([JSON.stringify(options), scheduleID], (error) => {
-                if (error == null) {
-                    resolve(true)
-                } else {
-                    reject(error)
-                }
+        update.run([JSON.stringify(options), scheduleID], (error) => {
+            if (error == null) {
+                resolve(true)
+            } else {
+                reject(error)
+            }
+        })
+    })
+}
+
+export const updateUserSettings = async (userName: string, settingsParameter: string, settingsValue: string) => {
+    return new Promise((resolve, reject) => {
+        getUserByName(userName)
+            .then(user => {
+                const update = db.prepare(
+                    `UPDATE userSettings SET ${settingsParameter} = ? WHERE userID = ?`
+                );
+                update.run([settingsValue, user.id], (error) => {
+                    if (error == null) {
+                        resolve(true)
+                    } else {
+                        reject(error)
+                    }
+                })
             })
-        } catch (err) {
-            console.error("Error in update schedule")
-            return false
-        }
     })
 }
 
@@ -246,51 +238,52 @@ export function getPathByUserID(path: string, user: number): Promise<Path> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM paths WHERE paths.path = ? AND paths.user = ?"
-        );
+        )
         select.get([path, user], (err, row) => {
             if (err) {
-                reject(err);
+                reject(err)
             } else {
                 // @ts-ignore
-                resolve(row as Path);
+                resolve(row)
             }
-        });
-    });
+        })
+    })
 }
 
 export function getPathByID(scriptID: number): Promise<Path> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM paths WHERE paths.id = ?"
-        );
+        )
         select.get([scriptID], (err, row) => {
             if (err)
-                reject(err); else
-            if (row === undefined)
-                reject(`There's no script with id ${scriptID}`); else
-                { // @ts-ignore
-                    resolve(row);
-                }
-        });
-    });
+                reject(err)
+            else if (row === undefined) {
+                reject(`There's no script with id ${scriptID}`)
+            } else {
+                // @ts-ignore
+                resolve(row)
+            }
+        })
+    })
 }
 
 export function getPathByParent(parentID: number): Promise<dirInfo[]> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT title, description, isDirectory FROM paths WHERE paths.parent = ?"
-        );
+        )
         select.all([parentID], (err, rows) => {
             if (err)
-                reject(err); else
-            if (rows === undefined)
-                reject(`There's no directory with id ${parentID}`); else
-            {
+                reject(err)
+            else if (rows === undefined) {
+                reject(`There's no directory with id ${parentID}`)
+            } else {
                 // @ts-ignore
-                resolve(rows);
+                resolve(rows)
             }
-        });
-    });
+        })
+    })
 }
 
 export function getUserByName(name: string) : Promise<User> {
@@ -299,10 +292,52 @@ export function getUserByName(name: string) : Promise<User> {
         selectId.get([name], (err, row) => {
             if (err)
                 reject(err); else
-            if (row === undefined)
-                reject(`There are no users with the name ${name}`); else {
-                // @ts-ignore
-                resolve(row);
+            if (row === undefined) {
+                reject(`There are no users with the name ${name}`)
+            } else {
+                resolve(row as User)
+            }
+        })
+    })
+}
+
+export function getUserByID(id: number) : Promise<User> {
+    return new Promise((resolve, reject) => {
+        const selectId = db.prepare("SELECT * FROM users WHERE users.id == ?")
+        selectId.get([id], (err, row) => {
+            if (err)
+                reject(err); else
+            if (row === undefined) {
+                reject(`There are no users with the id ${id}`)
+            } else {
+                resolve(row as User)
+            }
+        })
+    })
+}
+
+export function getUserSettingsByUserName(name: string) : Promise<UserSettings> {
+    return new Promise(async (resolve, reject) => {
+        const userID = await getUserByName(name)
+        const selectId = db.prepare("SELECT * FROM userSettings WHERE userID == ?")
+        selectId.get([userID], (err, row) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(row as UserSettings)
+            }
+        })
+    })
+}
+
+export function getUserSettingsByUserID(id: number) : Promise<UserSettings> {
+    return new Promise(async (resolve, reject) => {
+        const selectId = db.prepare("SELECT * FROM userSettings WHERE userID == ?")
+        selectId.get([id], (err, row) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(row as UserSettings)
             }
         })
     })
@@ -312,66 +347,66 @@ export function getScheduleByScriptIDAndOptions(scriptID: number, options: any):
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM schedule WHERE schedule.scriptID = ? AND schedule.options = ?"
-        );
+        )
         select.get([scriptID, JSON.stringify(options)], (err, row) => {
             if (err) {
-                reject(err);
+                reject(err)
             } else {
                 resolve(row as Schedule)
             }
-        });
-    });
+        })
+    })
 }
 
 export function getScheduleByID(scriptID: number): Promise<Schedule> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM schedule WHERE schedule.id = ?"
-        );
+        )
         select.get([scriptID], (err, row) => {
             if (err) {
-                reject(err);
+                reject(err)
             } else {
                 const schedule : Schedule = row as Schedule
                 // @ts-ignore
                 schedule.options = JSON.parse(row.options)
-                resolve(row as Schedule);
+                resolve(row as Schedule)
             }
-        });
-    });
+        })
+    })
 }
 
 export function getFirstFromCalendar(): Promise<Calendar> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "SELECT * FROM calendar ORDER BY datetime LIMIT 1"
-        );
+        )
         select.get((err, row) => {
-            if (err)
-                reject(err); else
-            if (row === undefined)
-                reject("There are no scripts in the calendar");
-            else {
+            if (err) {
+                reject(err)
+            } else if (row === undefined) {
+                reject("There are no scripts in the calendar")
+            } else {
                 const calendar: Calendar = row as Calendar
                 calendar.datetime = new Date(calendar.datetime)
-                resolve(calendar);
+                resolve(calendar)
             }
-        });
-    });
+        })
+    })
 }
 
 export function removeFromCalendar(eventID: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const select = db.prepare(
             "DELETE FROM calendar WHERE id = ?"
-        );
+        )
         select.run([eventID], (err) => {
             if (err == null) {
-                resolve(true);
+                resolve(true)
             } else {
-                reject(err);
+                reject(err)
             }
         })
-    });
+    })
 }
 

@@ -1,18 +1,10 @@
 import http = require('http');
 import {createDB} from "./sql/database";
-import {
-    parseExecute,
-    parseInsert,
-    parseSchedule,
-    parseLoadScript,
-    parseCreateUser,
-    parseUpdate,
-    parseAuthenticate, parseLoadDirectory, getParentDirectory, parseCreateDirectory, DataError
-} from "./parser";
+import {parseExecute, parseInsert, parseSchedule, parseLoadScript, parseCreateUser, parseUpdate, parseAuthenticate, parseLoadDirectory, getParentDirectory, parseCreateDirectory, parseDelete, parseUpdateUserSettings} from "./parser";
 import {configureSchedule} from "./scheduler";
 
 createDB();
-const PORT = 3001;
+const PORT = 3003;
 // TODO: change http to https?
 /**
  * Every (choose correct later) http request should have:
@@ -58,202 +50,109 @@ const PORT = 3001;
  *
  */
 
-
 const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
-    console.log("GOT REQUEST")
+    console.log("GOT REQUEST");
+
     if (req.method === 'POST') {
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString();
         });
-        req.on('end',    () => {
-            console.log(body)
-            let bodyJSON  = JSON.parse(body)
+
+        req.on('end', () => {
+            console.log(body);
+            let bodyJSON : any;
             try {
-                let response =''
-                if (bodyJSON.type == 'insertScript') {
-                    parseInsert(bodyJSON)
-                        .then(_ => {
-                            response = JSON.stringify({
-                                status:0,
-                                message: `Saved script ${bodyJSON.title}`
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then( _=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'updateScript') {
-                    parseUpdate(bodyJSON)
-                        .then(title => {
-                            response = JSON.stringify({
-                                status:0,
-                                message: `Saved script ${title}`
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then( _=> {
-                        res.end(response)
-                    })
-                }else if (bodyJSON.type == 'deleteScript') {
-                    parseUpdate(bodyJSON)
-                        .then(title => {
-                            response = JSON.stringify({
-                                status:0,
-                                message: `Deleted script ${title}`
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then( _=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'execScript') {
-                    parseExecute(bodyJSON)
-                        .then(title => {
-                            response = JSON.stringify({
-                                status:0,
-                                message: `Running script ${title}`
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then( _=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'scheduleScript') {
-                    parseSchedule(bodyJSON)
-                        .then(result => {
-                                response = JSON.stringify({
-                                    status:0,
-                                    message: `Scheduled on ${result}`
-                                })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then( _=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'loadScript') {
-                    parseLoadScript(bodyJSON)
-                        .then((script: any) => {
-                            response = JSON.stringify({
-                                status: 0,
-                                message: `Loaded script ${script.title} succesfully`,
-                                source: script.source
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then((_: any)=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'loadDirectory') {
-                    parseLoadDirectory(bodyJSON)
-                        .then((contents: any) => {
-                            response = JSON.stringify({
-                                status: 0,
-                                message: `Loaded directory succesfully`,
-                                contents
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then((_: any)=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'getParent') {
-                    getParentDirectory(bodyJSON)
-                        .then((path: string) => {
-                            response = JSON.stringify({
-                                status: 0,
-                                message: `Loaded directory succesfully`,
-                                path
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then((_: any)=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'createDirectory') {
-                    parseCreateDirectory(bodyJSON)
-                        .then(_ => {
-                            response = JSON.stringify({
-                                status: 0,
-                                message: `Created new directory ${bodyJSON.name}`
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then((_: any)=> {
-                        res.end(response)
-                    })
-                } else if (bodyJSON.type == 'createUser') {
-                    parseCreateUser(bodyJSON)
-                        .then(_ => {
-                            response = JSON.stringify({
-                                status:0,
-                                message: `Created new user ${bodyJSON.username} succesfully`,
-                            })
-                        }).catch((error: any) => {
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then((_: any)=> {
-                        res.end(response)
-                    })
+                bodyJSON = JSON.parse(body);
+            } catch (error) {
+                console.error(error);
+                return;
+            }
+
+            const handleResponse = (status: number, message: string | object) => {
+                const response = JSON.stringify({ status, message });
+                res.end(response);
+            };
+
+            const parseAction = async <T>(
+                action: (data: any) => Promise<T>,
+                successMessage: (result: T) => string | object
+            ) => {
+                try {
+                    const result = await action(bodyJSON);
+                    handleResponse(0, successMessage(result));
+                } catch (error: any) {
+                    if (typeof error == "string") {
+                        handleResponse(1, error);
+                    } else {
+                        handleResponse(1, error.message);
+                    }
                 }
-                else if (bodyJSON.type == 'signIn') {
+            };
+
+            switch (bodyJSON.type) {
+                case 'insertScript':
+                    parseAction(parseInsert, () => `Saved script ${bodyJSON.title}`);
+                    break;
+                case 'deleteScript':
+                    parseAction(parseDelete, (title: string) => `Deleted script ${title}`);
+                    break;
+                case 'updateScript':
+                    parseAction(parseUpdate, (title: string) => `Saved script ${title}`);
+                    break;
+                case 'execScript':
+                    parseAction(parseExecute, (title: string) => `Running script ${title}`);
+                    break;
+                case 'scheduleScript':
+                    parseAction(parseSchedule, (result: Date) => `Scheduled on ${result}`);
+                    break;
+                case 'loadScript':
+                    parseAction(parseLoadScript, (script: any) => ({
+                        message: `Loaded script ${script.title} successfully`,
+                        source: script.source
+                    }));
+                    break;
+                case 'loadDirectory':
+                    parseAction(parseLoadDirectory, (contents: any) => ({
+                        message: 'Loaded directory successfully',
+                        contents
+                    }));
+                    break;
+                case 'getParent':
+                    parseAction(getParentDirectory, (path: string) => ({
+                        message: 'Loaded directory successfully',
+                        path
+                    }));
+                    break;
+                case 'createDirectory':
+                    parseAction(parseCreateDirectory, () => `Created new directory ${bodyJSON.name}`);
+                    break;
+                case 'createUser':
+                    parseAction(parseCreateUser, () => `Created new user ${bodyJSON.username} successfully`);
+                    break;
+                case 'updateUserSettings':
+                    parseAction(parseUpdateUserSettings, (response) => response);
+                    break;
+                case 'signIn':
                     parseAuthenticate(bodyJSON)
-                        .then(_ => {
-                            response = JSON.stringify({
-                                status:0,
-                                message: `Logged in succesfully`,
-                            })
-                        }).catch((error) => {
-                            console.log(error)
-                        response = JSON.stringify({
-                            status:1,
-                            message:error.message
-                        })
-                    }).then((_: any)=> {
-                        console.log(response)
-                        res.end(response)
-                    })
-                }
-            } catch (err) {
-                console.error(err)
+                        .then(_ => handleResponse(0, 'Logged in successfully'))
+                        .catch(error => {
+                            console.log(error);
+                            handleResponse(1, error.message);
+                        });
+                    break;
+                default:
+                    handleResponse(1, 'Unknown request type');
             }
         });
     } else {
         res.end();
     }
-})
+});
+
 
 configureSchedule()
 
