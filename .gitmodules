@@ -1,0 +1,3 @@
+[submodule "tanuki-server"]
+	path = tanuki-server
+	url = https://github.com/DANDROZAVR/tabuki-server
