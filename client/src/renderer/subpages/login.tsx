@@ -49,7 +49,7 @@ export function LogInScreen() {
           />
         </label>
         <label htmlFor="server_ip">
-          Password:
+          Server address:
           <input
             className="credentialsInput"
             value={serverIP}
