@@ -228,13 +228,7 @@ export async function createUser(username: string, password: string, callback) {
   );
 }
 
-export async function logIn(
-  username: string,
-  password: string,
-  serverUrl: string,
-  callback
-) {
-  url = serverUrl;
+export async function logIn(username: string, password: string, callback) {
   sendRequest(
     JSON.stringify({
       type: 'signIn',

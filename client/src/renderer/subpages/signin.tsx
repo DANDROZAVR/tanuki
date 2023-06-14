@@ -49,6 +49,7 @@ export function SignInScreen() {
         <button type="submit">Sign in</button>
       </form>
       <Link to="/login">Already have an account? Log in here.</Link>
+      <Link to="/pick_server">Pick another server.</Link>
       <label>
         Choose theme:
         <ThemeSelector
