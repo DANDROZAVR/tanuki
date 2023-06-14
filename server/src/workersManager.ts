@@ -84,6 +84,7 @@ export const runWorker = (workerOptions: any, userSettings: UserSettings) : Prom
 }
 
 export const createWorker = (workerOptions: any, userSettings: UserSettings, callback: any = undefined, exitCode: number = 0)  => {
+    console.log(userSettings)
     if (callback != undefined) {
         workerOptions['callback'] = callback
     }

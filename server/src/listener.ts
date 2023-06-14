@@ -4,7 +4,7 @@ import {parseExecute, parseInsert, parseSchedule, parseLoadScript, parseCreateUs
 import {configureSchedule} from "./scheduler";
 
 createDB();
-const PORT = 3003;
+const PORT = 3001;
 // TODO: change http to https?
 /**
  * Every (choose correct later) http request should have:

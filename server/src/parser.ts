@@ -51,7 +51,7 @@ const createScriptPath = (currentDir: string, title: string, pureJSCode: boolean
     return `scripts/${currentDir}${title}${pureJSCode ? '.js' : '.tnk'}`
 }
 
-const getScriptPath = (path: string, pureJSCode: boolean) => {
+export const getScriptPath = (path: string, pureJSCode: boolean) => {
     return "scripts/" + path + (pureJSCode ? '.js' : '.tnk')
 }
 
@@ -324,6 +324,9 @@ export const createUser = async(username:string, password:string) => {
 
 export const authenticateUser = async(username:string, password:string) : Promise<boolean> => {
     const user = await getUserByName(username)
+    if(user===undefined){
+        throw new DataError('user with that name does not exist')
+    }
     const salt:Buffer = Buffer.from(user.salt, "hex")
     return await new Promise((resolve) => {
         crypto.pbkdf2(password, salt, 1024, 64, 'sha256', (err, derivedKey) => {

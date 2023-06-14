@@ -318,9 +318,10 @@ export function getUserByID(id: number) : Promise<User> {
 
 export function getUserSettingsByUserName(name: string) : Promise<UserSettings> {
     return new Promise(async (resolve, reject) => {
-        const userID = await getUserByName(name)
+        const user = await getUserByName(name)
         const selectId = db.prepare("SELECT * FROM userSettings WHERE userID == ?")
-        selectId.get([userID], (err, row) => {
+        console.log(user.id)
+        selectId.get([user.id], (err, row) => {
             if (err) {
                 reject(err)
             } else {

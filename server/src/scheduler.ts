@@ -1,6 +1,6 @@
 import {getFirstFromCalendar, getPathByID, getScheduleByID,getUserSettingsByUserID, removeFromCalendar} from "./sql/database";
 import {runWorker} from "./workersManager";
-import {addToCalendar} from "./parser";
+import {addToCalendar, getScriptPath} from "./parser";
 
 export const configureSchedule = () => {
     return setInterval(async () => {
@@ -19,6 +19,7 @@ const processNextEvent = async (): Promise<boolean> => {
             const schedule = await getScheduleByID(event.scheduleID);
             const options = schedule.options;
             const script = await getPathByID(schedule.scriptID)
+            script.path = getScriptPath(script.path, script.pureJSCode)
             await removeFromCalendar(event.id);
             const userSettings = await getUserSettingsByUserID(script.user)
             options.lastRunFeedback = await runWorker({
