@@ -1,334 +1,250 @@
-import React from 'react';
 import FileState from './fileState.ts';
 
 let url = 'http://localhost:3001';
 
-let signed_username="";
-let signed_password="";
-let currentDir="";
+let signedUsername = '';
+let signedPassword = '';
+let currentDir = '';
 
-export function getCurrentDirectory(){
-  return currentDir
+export function getCurrentDirectory() {
+  return currentDir;
 }
 
-export interface DirInfo{
-  name: string,
-  description: string,
-  isDirectory: boolean
+export interface DirInfo {
+  name: string;
+  description: string;
+  isDirectory: boolean;
 }
 
-export async function sendScript(script: string, scriptName: string, description = "") {
-  /* establish http connection */
+async function sendRequest(message: string, callback) {
   const request = new XMLHttpRequest();
   request.open('POST', url, true);
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-      // TODO: if response.status !=0 make alert appear accordingly
-
-      alert(response.message);
+      callback(response);
+      //alert(response.message);
     }
   };
   request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+  request.send(message);
+}
+
+export async function sendScript(
+  script: string,
+  scriptName: string,
+  description = ''
+) {
+  sendRequest(
     JSON.stringify({
       type: 'insertScript',
-      user: signed_username,
-      password: signed_password,
+      user: signedUsername,
+      password: signedPassword,
       title: scriptName,
       source: script,
       currentDir,
-      description
-    })
+      description,
+    }),
+    (response) => {}
   );
-
   return scriptName;
 }
 
-export async function updateScript(script: string, scriptName: string, description="") {
-  // TODO: tris should take name as argument
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-
-      alert(response.message);
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+export async function updateScript(
+  script: string,
+  scriptName: string,
+  description = ''
+) {
+  sendRequest(
     JSON.stringify({
       type: 'updateScript',
-      user: signed_username,
-      password: signed_password,
+      user: signedUsername,
+      password: signedPassword,
       path: currentDir + scriptName,
       description,
       source: script,
-    })
+    }),
+    (response) => {}
   );
-
   return scriptName;
 }
 
-export async function sendOrUpdate(script: string, scriptName: string, description="") {
-  // TODO: tris should take name as argument
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-
+export async function sendOrUpdate(
+  script: string,
+  scriptName: string,
+  description = ''
+) {
+  sendRequest(
+    JSON.stringify({
+      type: 'insertScript',
+      user: signedUsername,
+      password: signedPassword,
+      title: scriptName,
+      source: script,
+      currentDir,
+      description,
+    }),
+    (response) => {
       if (
         response.status === 1 &&
         response.message === 'Script with that name already exist'
       ) {
         updateScript(script, scriptName, description);
-      } else {
-        alert(response.message);
       }
     }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
-    JSON.stringify({
-      type: 'insertScript',
-      user: signed_username,
-      password: signed_password,
-      title: scriptName,
-      source: script,
-      currentDir,
-      description
-    })
   );
-
   return scriptName;
 }
 
 export async function execScript(scriptName: string) {
-  // TODO: this should take string as argument
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-
-      alert(response.message);
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+  sendRequest(
     JSON.stringify({
       type: 'execScript',
-      user: signed_username,
-      password: signed_password,
-      path: currentDir+scriptName,
-    })
+      user: signedUsername,
+      password: signedPassword,
+      path: currentDir + scriptName,
+    }),
+    (response) => {}
   );
 }
 
-export async function loadScript(dirInfo: DirInfo, scriptCallback, directoryCallback) {
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  if(dirInfo.isDirectory){
-    request.onreadystatechange = function onStateChange() {
-      if (request.readyState === 4 && request.status === 200) {
-        const response = JSON.parse(request.response);
-        if(response.status==0) {
-          currentDir = currentDir + dirInfo.name + "/"
-          //in response.contents we get array of dirInfo - contents of chosen directory
-          directoryCallback(response.contents)
-        } else {
-          alert(response.message)
-        }
-      }
-    };
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(
+export async function loadScript(
+  dirInfo: DirInfo,
+  scriptCallback,
+  directoryCallback
+) {
+  if (dirInfo.isDirectory) {
+    const newPath = `${currentDir}${dirInfo.name}/`;
+    sendRequest(
       JSON.stringify({
         type: 'loadDirectory',
-        user: signed_username,
-        password: signed_password,
-        path: currentDir + dirInfo.name + "/",
-      })
+        user: signedUsername,
+        password: signedPassword,
+        path: newPath,
+      }),
+      (response) => {
+        if (response.status === 0) {
+          currentDir = newPath;
+          directoryCallback(response.contents);
+        }
+      }
     );
   } else {
-    request.onreadystatechange = function onStateChange() {
-      if (request.readyState === 4 && request.status === 200) {
-        const response = JSON.parse(request.response);
-        if(response.status==0) {
+    sendRequest(
+      JSON.stringify({
+        type: 'loadScript',
+        user: signedUsername,
+        password: signedPassword,
+        path: currentDir + dirInfo.name,
+      }),
+      (response) => {
+        if (response.status === 0) {
           const scriptState = {
-            scriptName : dirInfo.name,
-            value: response.source,
+            scriptName: dirInfo.name,
+            value: response.message.source,
             defaultLanguage: 'typescript',
           } as FileState;
           scriptCallback(scriptState);
         } else {
-          alert(response.message)
+          alert(response.message);
         }
       }
-    };
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(
-      JSON.stringify({
-        type: 'loadScript',
-        user: signed_username,
-        password: signed_password,
-        path: currentDir + dirInfo.name,
-      })
     );
   }
 }
 
-async function loadCurrentDirectory(callback){
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-      if(response.status==0) {
-        //in response.contents we get array of dirInfo - contents of chosen directory
-        let contents = response.contents as DirInfo[]
-        callback(contents)
-      } else {
-        alert(response.message)
-      }
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+async function loadCurrentDirectory(callback) {
+  sendRequest(
     JSON.stringify({
       type: 'loadDirectory',
-      user: signed_username,
-      password: signed_password,
-      path: currentDir
-    })
-  );
-}
-export async function loadParentDirectory(callback){
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-      if(response.status==0) {
-        currentDir = response.path
-        loadCurrentDirectory(callback)
-      } else {
-        alert(response.message)
+      user: signedUsername,
+      password: signedPassword,
+      path: currentDir,
+    }),
+    (response) => {
+      if (response.status === 0) {
+        // in response.contents we get array of dirInfo - contents of chosen directory
+        const contents = response.contents as DirInfo[];
+        callback(contents);
       }
     }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+  );
+}
+
+export async function loadParentDirectory(callback) {
+  sendRequest(
     JSON.stringify({
       type: 'getParent',
-      user: signed_username,
-      password: signed_password,
-      path: currentDir
-    })
+      user: signedUsername,
+      password: signedPassword,
+      path: currentDir,
+    }),
+    (response) => {
+      if (response.status === 0) {
+        currentDir = response.path;
+        loadCurrentDirectory(callback);
+      }
+    }
   );
 }
 
-export async function loadHomeDirectory(callback){
-  currentDir = signed_username + "/"
-  loadCurrentDirectory(callback)
+export async function loadHomeDirectory(callback) {
+  currentDir = `${signedUsername}/`;
+  loadCurrentDirectory(callback);
 }
 
-export async function createDirectory(name: string, description = ""){
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-      // TODO: if response.status !=0 make alert appear accordingly
-
-      alert(response.message);
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+export async function createDirectory(name: string, description = '') {
+  sendRequest(
     JSON.stringify({
       type: 'createDirectory',
-      user: signed_username,
-      password: signed_password,
+      user: signedUsername,
+      password: signedPassword,
       name,
       currentDir,
-      description
-    })
+      description,
+    }),
+    (response) => {}
   );
 }
 
-export async function deleteScript(dirInfo : DirInfo) {
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-
-      alert(response.message);
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+export async function deleteScript(dirInfo: DirInfo) {
+  sendRequest(
     JSON.stringify({
       type: 'deleteScript',
-      user: signed_username,
-      password: signed_password,
-      path: currentDir + dirInfo.name + (dirInfo.isDirectory ? "/" : ""),
-    })
+      user: signedUsername,
+      password: signedPassword,
+      path: currentDir + dirInfo.name + (dirInfo.isDirectory ? '/' : ''),
+    }),
+    (response) => {}
   );
 }
 
 export async function createUser(username: string, password: string, callback) {
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-      console.log(response)
-      callback(response);
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+  sendRequest(
     JSON.stringify({
       type: 'createUser',
       user: username,
       password,
-    })
+    }),
+    callback
   );
 }
 
-export async function logIn(username: string, password: string, server_ip: string, callback) {
-  url = server_ip;
-  /* establish http connection */
-  const request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onreadystatechange = function onStateChange() {
-    if (request.readyState === 4 && request.status === 200) {
-      const response = JSON.parse(request.response);
-      if(response.status === 0){
-        signed_username = username
-        signed_password = password
-        currentDir = username + "/"
-      }
-      callback(response);
-    }
-  };
-  request.setRequestHeader('Content-type', 'application/json');
-  request.send(
+export async function logIn(username: string, password: string, callback) {
+  sendRequest(
     JSON.stringify({
       type: 'signIn',
       user: username,
       password,
-    })
+    }),
+    (response) => {
+      if (response.status === 0) {
+        signedUsername = username;
+        signedPassword = password;
+        currentDir = `${username}/`;
+      }
+      callback(response);
+    }
   );
 }
 
@@ -339,7 +255,6 @@ export async function scheduleScript(scriptName: string, scheduleTime: string) {
   request.onreadystatechange = function onStateChange() {
     if (request.readyState === 4 && request.status === 200) {
       const response = JSON.parse(request.response);
-
       alert(response.message);
     }
   };
@@ -347,20 +262,24 @@ export async function scheduleScript(scriptName: string, scheduleTime: string) {
   request.send(
     JSON.stringify({
       type: 'scheduleScript',
-      user: signed_username,
-      password: signed_password,
-      path: currentDir+scriptName,
+      user: signedUsername,
+      password: signedPassword,
+      path: currentDir + scriptName,
       scheduleOptions: {
-        tag : "once",
+        tag: 'once',
         once: {
-          date : scheduleTime
-        }
-      }
+          date: scheduleTime,
+        },
+      },
     })
   );
 }
 
 export async function logOut() {
-  signed_username=""
-  signed_password=""
+  signedUsername = '';
+  signedPassword = '';
+}
+
+export async function pickServer(serverUrl: string) {
+  url = serverUrl;
 }
