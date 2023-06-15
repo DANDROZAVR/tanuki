@@ -1,7 +1,0 @@
-build/**/*
-package-lock.json
-tanuki.db
-node_modules
-utils/logs_errors.txt
-.idea
-tanuki-compiler/**/*
