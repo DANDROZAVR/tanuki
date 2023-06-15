@@ -1,20 +1,29 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { RequestFieldAndButton } from '../gui/util';
-import {loadHomeDirectory, loadScript, logOut} from '../network/client';
+import { DirInfo, loadScript, logOut } from '../network/client';
 
 export function ScriptManagerScreen() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = React.useState('');
 
   function onLoadScript(scriptName: string) {
-    loadHomeDirectory(_=>{})
-    /*loadScript(scriptName, (scriptState) => {
-      navigate('/file_view', {
-        scriptState,
-        themeState: window.theme.get(),
-      });
-    });*/
+    loadScript(
+      {
+        name: scriptName,
+        description: '',
+        isDirectory: false,
+      } as DirInfo,
+      (scriptState) => {
+        navigate('/file_view', {
+          state: {
+            scriptState,
+              //themeState: window.theme.get(),
+            },
+        });
+      },
+      (directoryState) => {}
+    );
   }
 
   function goToPlayground() {

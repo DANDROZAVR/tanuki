@@ -141,10 +141,12 @@ export async function loadScript(
         if (response.status === 0) {
           const scriptState = {
             scriptName: dirInfo.name,
-            value: response.source,
+            value: response.message.source,
             defaultLanguage: 'typescript',
           } as FileState;
           scriptCallback(scriptState);
+        } else {
+          alert(response.message);
         }
       }
     );
