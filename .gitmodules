@@ -1,6 +1,6 @@
 [submodule "tanuki-server"]
 	path = tanuki-server
-	url = https://github.com/DANDROZAVR/tabuki-server
+	url = https://github.com/DANDROZAVR/tanuki-server
 [submodule "tanuki-client"]
 	path = tanuki-client
 	url = https://github.com/DANDROZAVR/tanuki-client
